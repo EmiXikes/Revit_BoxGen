@@ -1,42 +1,26 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Electrical;
 using Autodesk.Revit.UI;
 using EpicWallBoxGen;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using static EpicWallBoxGen.SourceDataStructs;
+using static EpicWallBoxGen.InputData;
+using static EpicWallBoxGen.HelperOps_Creators;
 
 namespace EpicWallBoxGen
 {
     [Transaction(TransactionMode.Manual)]
     internal class BoxGen : HelperOps, IExternalCommand
     {
-
-        #region INPUT DATA
-        // Ipnut data 
-        SourceType SourceDataType = SourceType.RVT;
-
-        // Input RVT
-        BuiltInCategory SelectedSourceCategory = BuiltInCategory.OST_ElectricalFixtures;
-        List<string> SelectedNamesFilter = new List<string>();// { "Switch", "Socket"};
-        
-        string SelectedSourceDocName = "Baltezers house 2022";
-        string SelectedCollsiionDocName = "";
-        string SelectedSourceLevelName = "1st Floor";
-        double FloorLevelOffset = 0;
-        double CeilingLevelOffset = 0;
-        // Input data DWG
-
-
-        #endregion
-
-
         Result transResult = Result.Cancelled;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -59,7 +43,7 @@ namespace EpicWallBoxGen
             switch (SourceDataType)
             {
                 case SourceType.RVT:
-                    linkedFixtures = GetSourcePointsRVT(doc, sData);
+                    linkedFixtures = HelperOps_DataCollectors.GetSourcePointsRVT(doc, sData);
                     break;
                 case SourceType.DWG:
                     break;
@@ -68,24 +52,91 @@ namespace EpicWallBoxGen
             }
 
             #endregion
-
-            // GetWallPoints(linkedfixtures)           
-
+   
             Transaction trans = new Transaction(doc);
             trans.Start("Epic WallBox Generation");
 
 
+            // TESTING
+            #region Definitions of Revit elements, families, types, ect
+            Document SelectedSourceDoc = HelperOps_DataCollectors.GetLinkedDocByName(doc, sData.SourceRVTDocName);
 
-            foreach (var item in linkedFixtures)
+            var TargetLevel = new FilteredElementCollector(doc).
+                OfClass(typeof(Level)).
+                OfCategory(BuiltInCategory.OST_Levels).ToList().
+                FirstOrDefault(L => L.Name == SelectedTargetLevelName);
+
+            var scBoxFamSymbol = (FamilySymbol)new FilteredElementCollector(doc).
+                OfCategory(BuiltInCategory.OST_MechanicalEquipment).
+                FirstOrDefault(x => x.Name == BoxFamilyTypeName);
+            var scFloorCornerFamSymbol = (FamilySymbol)new FilteredElementCollector(doc).
+                OfCategory(BuiltInCategory.OST_MechanicalEquipment).
+                FirstOrDefault(x => x.Name == FloorCornerSingleTypeName);
+            var scCeilingCornerFamSymbol = (FamilySymbol)new FilteredElementCollector(doc).
+                OfCategory(BuiltInCategory.OST_MechanicalEquipment).
+                FirstOrDefault(x => x.Name == CeilingCornerSingleTypeName);
+
+            var conduitTypes =
+                new FilteredElementCollector(doc)
+                .OfClass(typeof(ConduitType))
+                .OfType<ConduitType>()
+                .ToList();
+            ConduitType conduitType = conduitTypes.FirstOrDefault(n => n.Name == "Conduit PVC");
+
+            #endregion
+
+            // Survey point
+            XYZ surveyPoint = HelperOps_DataCollectors.GetSurveyPoint(doc);
+
+            WallSnapSettingsData MySettings = GetUserSettings_WallboxGen(doc);
+
+            foreach (var LinkedFixture in linkedFixtures)
             {
                 Debug.WriteLine(String.Format(
                     "Fixture: [{0}]  Type Name: {1}  Family Name: {2}  Level: {3}",
-                    item.Id, item.Name, item.Symbol.FamilyName, item.LevelId)
+                    LinkedFixture.Id, LinkedFixture.Name, LinkedFixture.Symbol.FamilyName, LinkedFixture.LevelId)
                     );
+
+                // New data item
+                PointData itemPointData = new PointData()
+                {
+                    LinkedFixture = LinkedFixture,
+                    LinkedFixtureLocation = (LinkedFixture.Location as LocationPoint).Point,
+                    Rotation = XYZ.BasisX.AngleOnPlaneTo(LinkedFixture.FacingOrientation, XYZ.BasisZ) + Math.PI / 2,
+                    TargetLevel = TargetLevel,
+                    scBoxFamSymbol = scBoxFamSymbol,
+                    scFloorCornerFamSymbol = scFloorCornerFamSymbol,
+                    conduitType = conduitType,
+                    InstallationHeight = 0,
+                    Description = "",
+                    ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
+                    ConnectionEnd = PointDataStructs.ConnectionEnd.BOX,
+                    SeperateConduitLine = PointDataStructs.SeperateConduitLine.NO,
+                    FixtureEnd = PointDataStructs.FixtureEnd.SOCKET,
+                };
+
+                // Custom data additions
+                #region Custom data
+
+                if (itemPointData.LinkedFixture.Symbol.FamilyName.Contains("Switch"))
+                {
+                    itemPointData.ConduitDirection = PointDataStructs.ConduitDirection.UP;
+                }
+
+                #endregion
+
+                // Coordinate corrections
+                #region Coordinate Corrections
+                               
+                itemPointData = WallCoordinateCorrection(doc, itemPointData, MySettings);
+
+                #endregion
+                                
+                // Create elements
+                CreatePointElements(doc, MySettings, itemPointData);
+
+                
             }
-
-
-
 
             //System.Windows.MessageBox.Show("Testing...");
 
@@ -95,8 +146,6 @@ namespace EpicWallBoxGen
             return transResult;
 
         }
-
-        
     }
 
     [Transaction(TransactionMode.Manual)]
@@ -134,7 +183,7 @@ namespace EpicWallBoxGen
             foreach (var TestItem in TestItems)
             {
                 XYZ TestItemLocation = (TestItem.Location as LocationPoint).Point;
-                NearestWallPoint NearestPointFinder = FindNearestWallPoint(TestItemLocation, CollisionView, doc, CollisionCatsWall, revDist, fwdDist);//, doc, CollisionCatsWall, fwdDist, revDist);
+                NearestWallPoint NearestPointFinder = HelperOps_NearestFinders.FindNearestWallPoint(TestItemLocation, CollisionView, doc, CollisionCatsWall, revDist, fwdDist);//, doc, CollisionCatsWall, fwdDist, revDist);
 
                 if (NearestPointFinder.IsNewPointFound)
                 {
@@ -144,13 +193,13 @@ namespace EpicWallBoxGen
                     double existingRotation = (TestItem.Location as LocationPoint).Rotation;
                     RotationAngle = Math.Abs(RotationAngle - existingRotation);
                     RotateFamilyInstance(TestItem, NearestPointFinder.FoundPoint, RotationAngle);
-
-                    CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.05);
-                    CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.1);
-                    CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.2);
-                    CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.4);
-                    CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.5);
-                    CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.6);
+                    HelperOps_Creators.
+                                        CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.05);
+                    HelperOps_Creators.CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.1);
+                    HelperOps_Creators.CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.2);
+                    HelperOps_Creators.CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.4);
+                    HelperOps_Creators.CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.5);
+                    HelperOps_Creators.CreateDebugMarker(doc, NearestPointFinder.FoundPoint + NearestPointFinder.WallSurfaceVector * -0.6);
                 }
             }
 

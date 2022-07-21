@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EpicWallBoxGen
 {
-    internal class PointDataStructs
+    public class PointDataStructs
     {
         public enum ConduitDirection
         {

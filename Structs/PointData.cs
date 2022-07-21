@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Electrical;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,16 +11,25 @@ namespace EpicWallBoxGen
 {
     public class PointData
     {
-        public XYZ Location;
-        public XYZ DirectionVector;
+        public FamilyInstance LinkedFixture;
+        public FamilyInstance CreatedScBoxInstane;
+        public FamilyInstance CreatedConnectionBoxInstane;
+
+        public Element TargetLevel;
+        public XYZ LinkedFixtureLocation;
+        //public XYZ DirectionVector;
         public double Rotation;
         public double InstallationHeight;
         public string Description;
+        
+        public FamilySymbol scBoxFamSymbol;
+        public FamilySymbol scFloorCornerFamSymbol;
+        public ConduitType conduitType;
 
-        ConduitDirection ConduitDirection;
-        FixtureEnd FixtureEnd;
-        ConnectionEnd ConnectionEnd;
-        SeperateConduitLine SeperateConduitLine;
+        public ConduitDirection ConduitDirection;
+        public FixtureEnd FixtureEnd;
+        public ConnectionEnd ConnectionEnd;
+        public SeperateConduitLine SeperateConduitLine;
 
     }
 }

@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -56,6 +57,13 @@
     <Compile Include="BoxGen.cs" />
     <Compile Include="BoxGenHelpers.cs" />
     <Compile Include="Helpers\HelperOps.cs" />
+    <Compile Include="Helpers\HelperOps_Creators.cs" />
+    <Compile Include="Helpers\HelperOps_DataCollectors.cs" />
+    <Compile Include="Helpers\HelperOps_NearestFinders.cs" />
+    <Compile Include="Helpers\HelperOps_ViewOps.cs" />
+    <Compile Include="InputData.cs" />
+    <Compile Include="SocketBoxConduitBot.cs" />
+    <Compile Include="SocketBoxConduitTop.cs" />
     <Compile Include="Structs\PointData.cs" />
     <Compile Include="Structs\PointDataStructs.cs" />
     <Compile Include="Structs\SourceData.cs" />

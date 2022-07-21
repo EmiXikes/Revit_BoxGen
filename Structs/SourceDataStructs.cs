@@ -1,6 +1,6 @@
 ﻿namespace EpicWallBoxGen
 {
-    internal class SourceDataStructs
+    public class SourceDataStructs
     {
         public enum SourceType
         {

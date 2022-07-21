@@ -34,7 +34,6 @@ namespace EpicWallBoxGen
             List<BuiltInCategory> CollisionCatsWall = new List<BuiltInCategory>();
             CollisionCatsWall.Add(BuiltInCategory.OST_Walls);
 
-
             Transaction trans = new Transaction(doc);
             trans.Start("Epic Snap to nearest wall");
 
@@ -56,12 +55,12 @@ namespace EpicWallBoxGen
             #endregion
 
             #region creating snap check View
-            View3D CollisionView = GetOrCreate3DView(doc, MySettings.ViewName);
+            View3D CollisionView = HelperOps_ViewOps.GetOrCreate3DView(doc, MySettings.ViewName);
+            HelperOps_ViewOps.
 
-
-            SetVisibleCats(doc, CollisionCatsWall, CollisionView);
-
-            SetVisibleLink(doc, MySettings.LinkId, CollisionView);
+                        SetVisibleCats(doc, CollisionCatsWall, CollisionView);
+            HelperOps_ViewOps.
+                        SetVisibleLink(doc, MySettings.LinkId, CollisionView);
 
 
             #endregion
@@ -79,7 +78,7 @@ namespace EpicWallBoxGen
      
                 XYZ initialPoint = (selectedFamInstance.Location as LocationPoint).Point;
 
-                NearestWallPoint NearestPointFinder = FindNearestWallPoint(
+                NearestWallPoint NearestPointFinder = HelperOps_NearestFinders.FindNearestWallPoint(
                     initialPoint,
                     CollisionView,
                     CollisionDoc,
