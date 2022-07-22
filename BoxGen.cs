@@ -121,6 +121,7 @@ namespace EpicWallBoxGen
                 if (itemPointData.LinkedFixture.Symbol.FamilyName.Contains("Switch"))
                 {
                     itemPointData.ConduitDirection = PointDataStructs.ConduitDirection.UP;
+                    itemPointData.ConnectionEnd = PointDataStructs.ConnectionEnd.CONDUIT;
                 }
 
                 #endregion

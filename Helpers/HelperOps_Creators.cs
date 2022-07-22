@@ -27,96 +27,40 @@ namespace EpicWallBoxGen
 
         public static void CreatePointElements(Document doc, WallSnapSettingsData MySettings, PointData itemPointData)
         {
-            #region Creating box fixture
+            CreateSocketBox(doc, itemPointData);
 
+            CreateConnectionBox(doc, itemPointData, MySettings);
+
+            CreateConduit(doc, itemPointData);
+
+        }
+
+        public static void CreateSocketBox(Document doc, PointData itemPointData)
+        {
             double verticalOffset = FixtureCenterOffset.Y;
             XYZ OffsetXYZ = new XYZ(0, 0, verticalOffset);
 
-            itemPointData.LinkedFixtureLocation = itemPointData.LinkedFixtureLocation + OffsetXYZ;
-            //
-            //lnkFixtrLocation = lnkFixtrLocation + OffsetXYZ;
+            itemPointData.LinkedFixtureLocation += OffsetXYZ;
+
+            XYZ LevelOffset = new XYZ(0, 0, (itemPointData.TargetLevel as Level).Elevation);
+
+            itemPointData.LinkedFixtureLocation -= LevelOffset;
+
             Debug.WriteLine(String.Format("Fixture offset: [{0}]", OffsetXYZ));
 
             itemPointData.scBoxFamSymbol.Activate();
             itemPointData.CreatedScBoxInstane = doc.Create.NewFamilyInstance(
                 itemPointData.LinkedFixtureLocation,
                 itemPointData.scBoxFamSymbol,
-                itemPointData.TargetLevel,
+                (Level)itemPointData.TargetLevel,
                 Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-
-            //itemPointData.CreatedScBoxInstane = scBoxInstance;
 
             RotateFamilyInstance(itemPointData.CreatedScBoxInstane, itemPointData.LinkedFixtureLocation, itemPointData.Rotation);
 
             itemPointData.CreatedScBoxInstane.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(itemPointData.LinkedFixture.Symbol.FamilyName);
-
-            #endregion
-
-            #region Creating Floor Corner Box
-
-            if (itemPointData.ConduitDirection == PointDataStructs.ConduitDirection.DOWN)
-            {
-                CreateConnectionBox(doc, itemPointData);
-
-                CreateConduit(doc, itemPointData);
-
-            }
-            #endregion
-
-            #region Creating Above Ceiling Box
-
-
-
-            if (itemPointData.ConduitDirection == PointDataStructs.ConduitDirection.UP)
-            {
-                #region Location Correction
-                XYZ CeilingBoxLocation = GetCeilingBoxLocation(doc, MySettings, itemPointData);
-
-                #endregion
-                //scCeilingCornerFamSymbol.Activate();
-                //FamilyInstance ceilingBoxInstance = doc.Create.NewFamilyInstance(
-                //    CornerBoxLocation,
-                //    scCeilingCornerFamSymbol,
-                //    TargetLevel,
-                //    Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-
-                //RotateFamilyInstance(ceilingBoxInstance, CornerBoxLocation, RotationAngle);
-
-                // get scBox instance connectors
-                var insCons = itemPointData.CreatedScBoxInstane.MEPModel.ConnectorManager.Connectors;
-                List<Connector> scBoxInstanceConnectors = new List<Connector>();
-
-                foreach (Connector instanceCon in insCons)
-                {
-                    if (instanceCon.Description == "LeftCon" ||
-                        instanceCon.Description == "RightCon" ||
-                        instanceCon.Description == "TopCon" ||
-                        instanceCon.Description == "BottomCon")
-                    {
-                        scBoxInstanceConnectors.Add(instanceCon);
-                        //allscBoxConnectors.Add(instanceCon);
-                    }
-                }
-
-                Connector TopCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "TopCon");
-                XYZ CeilConduitPoint = new XYZ(TopCon.Origin.X, TopCon.Origin.Y, CeilingBoxLocation.Z);
-
-                Conduit conduitInstance = Conduit.Create(
-                    doc,
-                    itemPointData.conduitType.Id,
-                    TopCon.Origin,
-                    CeilConduitPoint,
-                    itemPointData.TargetLevel.Id
-                    );
-                var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
-                diameter.Set(20 / mmInFt);
-                conduitInstance.ConnectorManager.Lookup(0).ConnectTo(TopCon);
-
-            }
-            #endregion
         }
 
-        private static void CreateConduit(Document doc, PointData itemPointData)
+        public static void CreateConduit(Document doc, PointData itemPointData)
         {
             var insCons = itemPointData.CreatedScBoxInstane.MEPModel.ConnectorManager.Connectors;
             List<Connector> scBoxInstanceConnectors = new List<Connector>();
@@ -126,7 +70,11 @@ namespace EpicWallBoxGen
                 if (instanceCon.Description == "LeftCon" ||
                     instanceCon.Description == "RightCon" ||
                     instanceCon.Description == "TopCon" ||
-                    instanceCon.Description == "BottomCon")
+                    instanceCon.Description == "BottomCon" ||
+                    instanceCon.Description == "BottomRightCon" ||
+                    instanceCon.Description == "BottomLeftCon"||
+                    instanceCon.Description == "TopRightCon" ||
+                    instanceCon.Description == "TopLeftCon")
                 {
                     scBoxInstanceConnectors.Add(instanceCon);
                     //allscBoxConnectors.Add(instanceCon);
@@ -134,42 +82,177 @@ namespace EpicWallBoxGen
             }
 
             Connector BotCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "BottomCon");
-            var floorBoxInstanceConnectors = itemPointData.CreatedConnectionBoxInstane.MEPModel.ConnectorManager.Connectors;
-
-            foreach (Connector fBoxCon in floorBoxInstanceConnectors)
+            Connector BotRightCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "BottomRightCon");
+            
+            if (itemPointData.ConnectionEnd == PointDataStructs.ConnectionEnd.BOX)
             {
-                Conduit conduitInstance = Conduit.Create(
-                    doc,
-                    itemPointData.conduitType.Id,
-                    BotCon.Origin,
-                    fBoxCon.Origin,
-                    itemPointData.TargetLevel.Id
-                    );
-                var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
-                diameter.Set(20 / mmInFt);
-                conduitInstance.ConnectorManager.Lookup(0).ConnectTo(BotCon);
-                conduitInstance.ConnectorManager.Lookup(1).ConnectTo(fBoxCon);
+                var floorBoxInstanceConnectors = itemPointData.CreatedConnectionBoxInstane.MEPModel.ConnectorManager.Connectors;
+
+                foreach (Connector fBoxCon in floorBoxInstanceConnectors)
+                {
+                    Conduit conduitInstance = Conduit.Create(
+                        doc,
+                        itemPointData.conduitType.Id,
+                        BotCon.Origin,
+                        fBoxCon.Origin,
+                        itemPointData.TargetLevel.Id
+                        );
+                    var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                    diameter.Set(20 / mmInFt);
+                    conduitInstance.ConnectorManager.Lookup(0).ConnectTo(BotCon);
+                    conduitInstance.ConnectorManager.Lookup(1).ConnectTo(fBoxCon);
+                }
             }
-        }
-
-        private static void CreateConnectionBox(Document doc, PointData itemPointData)
+        } 
+        public static void CreateConduit2(Document doc, PointData itemPointData)
         {
-            XYZ CornerBoxLocation = itemPointData.LinkedFixtureLocation;
+            var insCons = itemPointData.CreatedScBoxInstane.MEPModel.ConnectorManager.Connectors;
+            List<Connector> scBoxInstanceConnectors = new List<Connector>();
 
-            CornerBoxLocation = new XYZ(
-                CornerBoxLocation.X,
-                CornerBoxLocation.Y,
-                (itemPointData.TargetLevel as Level).Elevation
+            foreach (Connector instanceCon in insCons)
+            {
+                if (instanceCon.Description == "LeftCon" ||
+                    instanceCon.Description == "RightCon" ||
+                    instanceCon.Description == "TopCon" ||
+                    instanceCon.Description == "BottomCon" ||
+                    instanceCon.Description == "BottomRightCon" ||
+                    instanceCon.Description == "BottomLeftCon"||
+                    instanceCon.Description == "TopRightCon" ||
+                    instanceCon.Description == "TopLeftCon")
+                {
+                    scBoxInstanceConnectors.Add(instanceCon);
+                    //allscBoxConnectors.Add(instanceCon);
+                }
+            }
+
+            Connector BotCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "BottomCon");
+            Connector BotRightCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "BottomRightCon");
+
+            double PointRotation = itemPointData.Rotation;
+
+            double CndAngle = 33 * (Math.PI/180);
+            double CndAngleHOffset = Math.Sin(CndAngle);
+            double CndAngleVOffset = -1 * Math.Cos(CndAngle);
+
+            var dt = new XYZ(BotRightCon.Origin.X, BotRightCon.Origin.Y, 0).DistanceTo(
+                            new XYZ(BotCon.Origin.X, BotCon.Origin.Y, 0));
+
+            CndAngleHOffset = (100 / mmInFt) - dt;
+            CndAngleVOffset = -1 * CndAngleHOffset / Math.Tan(CndAngle);
+
+
+            XYZ Point1 = BotRightCon.Origin;
+            XYZ Point2 = BotRightCon.Origin + 
+                new XYZ(
+                    CndAngleHOffset * Math.Cos(PointRotation),
+                    CndAngleHOffset * Math.Sin(PointRotation),
+                    CndAngleVOffset
+                    );
+            XYZ Point3 = new XYZ(Point2.X, Point2.Y, 0);
+
+            Conduit conduitInstance = Conduit.Create(
+                doc,
+                itemPointData.conduitType.Id,
+                Point1,
+                Point2,
+                itemPointData.TargetLevel.Id
+                );
+            var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+            diameter.Set(20 / mmInFt);
+            conduitInstance.ConnectorManager.Lookup(0).ConnectTo(BotRightCon);
+
+            //var takeoff = doc.Create.NewTakeoffFitting(conduitInstance.ConnectorManager.Lookup(1), conduitInstance);
+
+
+            //next segment
+            Conduit conduitInstance2 = Conduit.Create(
+                doc,
+                itemPointData.conduitType.Id,
+                Point2,
+                Point3,
+                itemPointData.TargetLevel.Id
                 );
 
-            itemPointData.scFloorCornerFamSymbol.Activate();
-            itemPointData.CreatedConnectionBoxInstane = doc.Create.NewFamilyInstance(
-                CornerBoxLocation,
-                itemPointData.scFloorCornerFamSymbol,
-                itemPointData.TargetLevel,
-                Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
-            RotateFamilyInstance(itemPointData.CreatedConnectionBoxInstane, CornerBoxLocation, itemPointData.Rotation);
+
+            var p = itemPointData.conduitType.RoutingPreferenceManager;
+            diameter = conduitInstance2.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+            diameter.Set(20 / mmInFt);
+
+            var fittingInstance = doc.Create.NewElbowFitting(conduitInstance.ConnectorManager.Lookup(1), conduitInstance2.ConnectorManager.Lookup(0));
+
+
+        }
+        public static void CreateConnectionBox(Document doc, PointData itemPointData, WallSnapSettingsData MySettings)
+        {
+            if( itemPointData.ConduitDirection == PointDataStructs.ConduitDirection.DOWN)
+            {
+                if (itemPointData.ConnectionEnd == PointDataStructs.ConnectionEnd.BOX)
+                {
+                    XYZ CornerBoxLocation = itemPointData.LinkedFixtureLocation;
+
+                    CornerBoxLocation = new XYZ(
+                        CornerBoxLocation.X,
+                        CornerBoxLocation.Y,
+                        (itemPointData.TargetLevel as Level).Elevation
+                        );
+
+                    itemPointData.scFloorCornerFamSymbol.Activate();
+                    itemPointData.CreatedConnectionBoxInstane = doc.Create.NewFamilyInstance(
+                        CornerBoxLocation,
+                        itemPointData.scFloorCornerFamSymbol,
+                        itemPointData.TargetLevel,
+                        Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                    RotateFamilyInstance(itemPointData.CreatedConnectionBoxInstane, CornerBoxLocation, itemPointData.Rotation);
+                }
+            }
+
+            if (itemPointData.ConduitDirection == PointDataStructs.ConduitDirection.UP)
+            {
+                if (itemPointData.ConnectionEnd == PointDataStructs.ConnectionEnd.CONDUIT)
+                {
+                    
+                    // get scBox instance connectors
+                    var insCons = itemPointData.CreatedScBoxInstane.MEPModel.ConnectorManager.Connectors;
+                    List<Connector> scBoxInstanceConnectors = new List<Connector>();
+
+                    foreach (Connector instanceCon in insCons)
+                    {
+                        if (instanceCon.Description == "LeftCon" ||
+                            instanceCon.Description == "RightCon" ||
+                            instanceCon.Description == "TopCon" ||
+                            instanceCon.Description == "BottomCon")
+                        {
+                            scBoxInstanceConnectors.Add(instanceCon);
+                            //allscBoxConnectors.Add(instanceCon);
+                        }
+                    }
+
+                    XYZ CeilingBoxLocation = GetCeilingBoxLocation(doc, MySettings, itemPointData);
+
+                    Connector TopCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "TopCon");
+                    XYZ CeilConduitPoint = new XYZ(TopCon.Origin.X, TopCon.Origin.Y, CeilingBoxLocation.Z);
+
+                    //CreateDebugMarker(doc, CeilConduitPoint);
+
+                    Conduit conduitInstance = Conduit.Create(
+                        doc,
+                        itemPointData.conduitType.Id,
+                        TopCon.Origin,
+                        CeilConduitPoint,
+                        itemPointData.TargetLevel.Id
+                        );
+                    var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                    diameter.Set(20 / mmInFt);
+                    conduitInstance.ConnectorManager.Lookup(0).ConnectTo(TopCon);
+                }
+
+                
+            }
+
+
+            
         }
     }
 }

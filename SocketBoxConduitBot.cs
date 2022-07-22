@@ -13,12 +13,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using static EpicWallBoxGen.SourceDataStructs;
+using static EpicWallBoxGen.HelperOps_Creators;
 
 namespace EpicWallBoxGen
 {
     [Transaction(TransactionMode.Manual)]
     internal class SocketBoxConduitBot : HelperOps, IExternalCommand
     {
+        
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             string FloorCornerSingleTypeName = "ConcreteVoid_FloorCorner_Single";
@@ -102,23 +105,6 @@ namespace EpicWallBoxGen
 
                 if (selectedFamInstance.Symbol.FamilyName != "ConcreteBox") { continue; }
 
-                XYZ itemLocation = (selectedFamInstance.Location as LocationPoint).Point;
-
-                // get instance connectors
-                var insCons = selectedFamInstance.MEPModel.ConnectorManager.Connectors;
-                List<Connector> scBoxInstanceConnectors = new List<Connector>();
-
-                foreach (Connector instanceCon in insCons)
-                {
-                    if (instanceCon.Description == "LeftCon" ||
-                        instanceCon.Description == "RightCon" ||
-                        instanceCon.Description == "TopCon" ||
-                        instanceCon.Description == "BottomCon")
-                    {
-                        scBoxInstanceConnectors.Add(instanceCon);
-                    }
-                }
-
                 var selectedElementLevel = SelectedElement.GetParameters("Host").First().AsString();
                 selectedElementLevel = selectedElementLevel.Replace(":", "");
                 selectedElementLevel = selectedElementLevel.Replace("Level", "").Trim();
@@ -128,43 +114,77 @@ namespace EpicWallBoxGen
                     OfCategory(BuiltInCategory.OST_Levels).ToList().
                     FirstOrDefault(L => L.Name == selectedElementLevel);
 
-                XYZ CornerBoxLocation = itemLocation;
 
-                CornerBoxLocation = new XYZ(
-                    CornerBoxLocation.X,
-                    CornerBoxLocation.Y,
-                    (TargetLevel as Level).Elevation
-                    );
-
-                scFloorCornerFamSymbol.Activate();
-                FamilyInstance floorBoxInstance = doc.Create.NewFamilyInstance(
-                    CornerBoxLocation,
-                    scFloorCornerFamSymbol,
-                    TargetLevel,
-                    Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-
-                RotateFamilyInstance(floorBoxInstance, CornerBoxLocation, (selectedFamInstance.Location as LocationPoint).Rotation);
-
-                Connector TopCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "BottomCon");
-                var floorBoxInstanceConnectors = floorBoxInstance.MEPModel.ConnectorManager.Connectors;
-
-                List<Connector> fBoxConnectors = new List<Connector>();
-                foreach (Connector connector in floorBoxInstanceConnectors)
+                PointData pData = new PointData()
                 {
-                    fBoxConnectors.Add(connector);
-                }
+                    CreatedScBoxInstane = selectedFamInstance,
+                    LinkedFixtureLocation = (selectedFamInstance.Location as LocationPoint).Point,
+                    TargetLevel = TargetLevel,
+                    Rotation = (selectedFamInstance.Location as LocationPoint).Rotation,
+                    scFloorCornerFamSymbol = scFloorCornerFamSymbol,
+                    conduitType = conduitType,
+                };
 
-                Conduit conduitInstance = Conduit.Create(
-                    doc,
-                    conduitType.Id,
-                    TopCon.Origin,
-                    fBoxConnectors.First().Origin,
-                    SelectedElement.LevelId
-                    );
-                var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
-                diameter.Set(20 / mmInFt);
-                conduitInstance.ConnectorManager.Lookup(0).ConnectTo(TopCon);
-                conduitInstance.ConnectorManager.Lookup(1).ConnectTo(fBoxConnectors.First());
+                //CreateConnectionBox(doc, pData);
+
+                CreateConduit2(doc, pData);
+
+
+                //XYZ itemLocation = (selectedFamInstance.Location as LocationPoint).Point;
+
+                //// get instance connectors
+                //var insCons = selectedFamInstance.MEPModel.ConnectorManager.Connectors;
+                //List<Connector> scBoxInstanceConnectors = new List<Connector>();
+
+                //foreach (Connector instanceCon in insCons)
+                //{
+                //    if (instanceCon.Description == "LeftCon" ||
+                //        instanceCon.Description == "RightCon" ||
+                //        instanceCon.Description == "TopCon" ||
+                //        instanceCon.Description == "BottomCon")
+                //    {
+                //        scBoxInstanceConnectors.Add(instanceCon);
+                //    }
+                //}
+
+
+                //XYZ CornerBoxLocation = itemLocation;
+
+                //CornerBoxLocation = new XYZ(
+                //    CornerBoxLocation.X,
+                //    CornerBoxLocation.Y,
+                //    (TargetLevel as Level).Elevation
+                //    );
+
+                //scFloorCornerFamSymbol.Activate();
+                //FamilyInstance floorBoxInstance = doc.Create.NewFamilyInstance(
+                //    CornerBoxLocation,
+                //    scFloorCornerFamSymbol,
+                //    TargetLevel,
+                //    Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                //RotateFamilyInstance(floorBoxInstance, CornerBoxLocation, (selectedFamInstance.Location as LocationPoint).Rotation);
+
+                //Connector TopCon = scBoxInstanceConnectors.FirstOrDefault(c => c.Description == "BottomCon");
+                //var floorBoxInstanceConnectors = floorBoxInstance.MEPModel.ConnectorManager.Connectors;
+
+                //List<Connector> fBoxConnectors = new List<Connector>();
+                //foreach (Connector connector in floorBoxInstanceConnectors)
+                //{
+                //    fBoxConnectors.Add(connector);
+                //}
+
+                //Conduit conduitInstance = Conduit.Create(
+                //    doc,
+                //    conduitType.Id,
+                //    TopCon.Origin,
+                //    fBoxConnectors.First().Origin,
+                //    SelectedElement.LevelId
+                //    );
+                //var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                //diameter.Set(20 / mmInFt);
+                //conduitInstance.ConnectorManager.Lookup(0).ConnectTo(TopCon);
+                //conduitInstance.ConnectorManager.Lookup(1).ConnectTo(fBoxConnectors.First());
 
                 #endregion
 

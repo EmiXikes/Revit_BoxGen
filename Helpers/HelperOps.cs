@@ -49,7 +49,9 @@ namespace EpicWallBoxGen
                         SetVisibleLink(doc, MySettings.LinkId, CollisionViewFloor);
             #endregion
 
-            XYZ CornerBoxLocation = itemPointData.LinkedFixtureLocation;
+            XYZ LevelOffset = new XYZ(0, 0, (itemPointData.TargetLevel as Level).Elevation);
+            XYZ CornerBoxLocation = itemPointData.LinkedFixtureLocation + LevelOffset;
+
             List<ReferenceWithContext> foundRefs = null;
             CornerBoxLocation = HelperOps_NearestFinders.GetCeilingPoints(
                 CollisionViewFloor,
