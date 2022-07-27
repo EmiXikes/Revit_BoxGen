@@ -1,14 +1,15 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using EpicWallBoxGen;
+using EpicWallBox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static EpicWallBox.SettingsSchema_WallSnap;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     [Transaction(TransactionMode.Manual)]
     internal class WallSnap : HelperOps, IExternalCommand
@@ -39,12 +40,12 @@ namespace EpicWallBoxGen
 
             #region Getting saved settings
             // getting saved settings
-            WallSnapSettingsStorage MySettingStorage = new WallSnapSettingsStorage();
-            WallSnapSettingsData MySettings = MySettingStorage.ReadSettings(doc);
+            SettingsData MySettingStorage = new SettingsData();
+            SettingsObj MySettings = MySettingStorage.Get(doc);
             if (MySettings == null)
             {
                 // Default Values
-                MySettings = new WallSnapSettingsData()
+                MySettings = new SettingsObj()
                 {
                     DistanceFwd = 1000,
                     DistanceRev = 0,

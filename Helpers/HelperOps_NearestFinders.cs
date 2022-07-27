@@ -1,8 +1,9 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using System.Linq;
+using static EpicWallBox.HelperOps_Creators;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     internal static class HelperOps_NearestFinders
     {
@@ -111,6 +112,8 @@ namespace EpicWallBoxGen
             //referenceWithContext = refIntersector.FindNearest(initialDeltaPosition, rayDirection);
 
             List<ReferenceWithContext> foundRefs = refIntersector.Find(initialDeltaPosition, rayDirection).ToList();
+
+            //CreateDebugMarker(view3D.Document, initialDeltaPosition);
 
             if (foundRefs.Count > 0)
             {

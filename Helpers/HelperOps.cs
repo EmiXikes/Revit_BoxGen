@@ -1,15 +1,16 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Electrical;
-using EpicWallBoxGen;
+using EpicWallBox;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static EpicWallBoxGen.InputData;
+using static EpicWallBox.InputData;
+using static EpicWallBox.SettingsSchema_WallSnap;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     internal class HelperOps
     {
@@ -31,7 +32,7 @@ namespace EpicWallBoxGen
                 RotationAngle);
         }
 
-        public static XYZ GetCeilingBoxLocation(Document doc, WallSnapSettingsData MySettings, PointData itemPointData)
+        public static XYZ GetCeilingPoint(Document doc, PointData itemPointData)
         {
             XYZ newLocation = XYZ.Zero;
 
@@ -46,21 +47,24 @@ namespace EpicWallBoxGen
             HelperOps_ViewOps.
                         SetVisibleCats(doc, CollisionCatsFloor, CollisionViewFloor);
             HelperOps_ViewOps.
-                        SetVisibleLink(doc, MySettings.LinkId, CollisionViewFloor);
+                        SetVisibleLink(doc, itemPointData.SnapSettings.LinkId, CollisionViewFloor);
             #endregion
 
             XYZ LevelOffset = new XYZ(0, 0, (itemPointData.TargetLevel as Level).Elevation);
-            XYZ CornerBoxLocation = itemPointData.LinkedFixtureLocation + LevelOffset;
+            //XYZ CornerBoxLocation = itemPointData.LinkedFixtureLocation;
+            XYZ CornerBoxLocation = (itemPointData.CreatedScBoxInstane.Location as LocationPoint).Point;
+            XYZ CeilTestOffsetPoint = itemPointData.CreatedScBoxInstane.FacingOrientation * 0.2;
 
             List<ReferenceWithContext> foundRefs = null;
-            CornerBoxLocation = HelperOps_NearestFinders.GetCeilingPoints(
+
+            var r = CornerBoxLocation = HelperOps_NearestFinders.GetCeilingPoints(
                 CollisionViewFloor,
-                CornerBoxLocation + itemPointData.LinkedFixture.FacingOrientation * 0.2,
+                CornerBoxLocation + CeilTestOffsetPoint,
                 100,
                 CollisionCatsFloor,
                 out foundRefs);
 
-            if (foundRefs.Count > 1)
+            if (foundRefs != null && foundRefs.Count > 1)
             {
                 newLocation = foundRefs[1].GetReference().GlobalPoint;
             }
@@ -68,11 +72,11 @@ namespace EpicWallBoxGen
             CornerBoxLocation = new XYZ(
                 itemPointData.LinkedFixtureLocation.X,
                 itemPointData.LinkedFixtureLocation.Y,
-                foundRefs[1].GetReference().GlobalPoint.Z);
+                newLocation.Z);
             return CornerBoxLocation;
         }
 
-        public static PointData WallCoordinateCorrection(Document doc, PointData itemPointData, WallSnapSettingsData MySettings)
+        public static PointData WallCoordinateCorrection(Document doc, PointData itemPointData, SettingsObj MySettings)
         {
             XYZ PrefferedDirection = null;
             double WallWidthFactor = 1;
@@ -149,17 +153,17 @@ namespace EpicWallBoxGen
             return itemPointData;
         }
 
-        public static WallSnapSettingsData GetUserSettings_WallboxGen(Document doc)
+        public static SettingsObj GetUserSettings_WallboxGen(Document doc)
         {
             #region Getting saved settings
 
             // getting saved settings
-            WallSnapSettingsStorage MySettingStorage = new WallSnapSettingsStorage();
-            WallSnapSettingsData MySettings = MySettingStorage.ReadSettings(doc);
+            SettingsData MySettingStorage = new SettingsData();
+            SettingsObj MySettings = MySettingStorage.Get(doc);
             if (MySettings == null)
             {
                 // Default Values
-                MySettings = new WallSnapSettingsData()
+                MySettings = new SettingsObj()
                 {
                     DistanceFwd = 1000,
                     DistanceRev = 0,
@@ -168,6 +172,57 @@ namespace EpicWallBoxGen
             }
             #endregion
             return MySettings;
+        }
+
+        public static void GetSymbols(ManualWallBoxFamilyTypeNames FamTypeNames, PointData pData)
+        {
+            var conduitTypes =
+                new FilteredElementCollector(pData.doc)
+                .OfClass(typeof(ConduitType))
+                .OfType<ConduitType>()
+                .ToList();
+            pData.conduitType = conduitTypes.FirstOrDefault(n => n.Name == FamTypeNames.conduitTypeName);
+
+            pData.conBoxBotFamSymbol = (FamilySymbol)new FilteredElementCollector(pData.doc).
+                OfCategory(BuiltInCategory.OST_MechanicalEquipment).
+                FirstOrDefault(x => x.Name == FamTypeNames.conBoxBotFamTypeName);
+
+            pData.scBoxFamSymbol = (FamilySymbol)new FilteredElementCollector(pData.doc).
+                OfCategory(BuiltInCategory.OST_MechanicalEquipment).
+                FirstOrDefault(x => x.Name == FamTypeNames.scBoxFamTypeName);
+        }
+
+        public static void GetSettings(PointData pData)
+        {
+            #region Getting saved settings
+            // getting saved settings
+            SettingsData MySettingStorage = new SettingsData();
+            pData.SnapSettings = MySettingStorage.Get(pData.doc);
+            if (pData.SnapSettings == null)
+            {
+                // Default Values
+                pData.SnapSettings = new SettingsObj()
+                {
+                    DistanceFwd = 1000,
+                    DistanceRev = 0,
+                    ViewName = "EpicWallC"
+                };
+            }
+
+            #endregion
+        }
+
+        public static Element GetElementLevel(Document doc, Element SelectedElement)
+        {
+            var selectedElementLevel = SelectedElement.GetParameters("Host").First().AsString();
+            selectedElementLevel = selectedElementLevel.Replace(":", "");
+            selectedElementLevel = selectedElementLevel.Replace("Level", "").Trim();
+
+            var TargetLevel = new FilteredElementCollector(doc).
+                OfClass(typeof(Level)).
+                OfCategory(BuiltInCategory.OST_Levels).ToList().
+                FirstOrDefault(L => L.Name == selectedElementLevel);
+            return TargetLevel;
         }
 
 

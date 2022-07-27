@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     internal static class HelperOps_ViewOps
     {

@@ -5,25 +5,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static EpicWallBoxGen.PointDataStructs;
+using static EpicWallBox.PointDataStructs;
+using static EpicWallBox.SettingsSchema_WallSnap;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     public class PointData
     {
+        public Document doc;
+
         public FamilyInstance LinkedFixture;
         public FamilyInstance CreatedScBoxInstane;
         public FamilyInstance CreatedConnectionBoxInstane;
-
+        // yes
         public Element TargetLevel;
         public XYZ LinkedFixtureLocation;
         //public XYZ DirectionVector;
         public double Rotation;
         public double InstallationHeight;
         public string Description;
+        public string SystemMoniker;
+
+        public bool transferComments = false;
+
+        public SettingsObj SnapSettings;
+        public double ConnectionOffset;
+        public double SocketWidthOffset = 100;
         
         public FamilySymbol scBoxFamSymbol;
-        public FamilySymbol scFloorCornerFamSymbol;
+        public FamilySymbol conBoxBotFamSymbol;
+        public FamilySymbol conBoxTopFamSymbol;
         public ConduitType conduitType;
 
         public ConduitDirection ConduitDirection;
@@ -31,5 +42,13 @@ namespace EpicWallBoxGen
         public ConnectionEnd ConnectionEnd;
         public SeperateConduitLine SeperateConduitLine;
 
+    }
+
+    public class ManualWallBoxFamilyTypeNames
+    {
+        public string scBoxFamTypeName;
+        public string conBoxBotFamTypeName;
+        public string conBoxTopFamTypeName;
+        public string conduitTypeName;
     }
 }

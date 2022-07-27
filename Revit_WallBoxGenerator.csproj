@@ -7,11 +7,11 @@
     <ProjectGuid>{70374122-8132-480C-9FCE-7BEE9540B31E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Revit_WallBoxGenerator</RootNamespace>
-    <AssemblyName>Revit_WallBoxGenerator</AssemblyName>
+    <RootNamespace>EpicWallBox</RootNamespace>
+    <AssemblyName>EpicWallBox</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <Deterministic>false</Deterministic>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -55,15 +55,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoxGen.cs" />
-    <Compile Include="BoxGenHelpers.cs" />
     <Compile Include="Helpers\HelperOps.cs" />
     <Compile Include="Helpers\HelperOps_Creators.cs" />
     <Compile Include="Helpers\HelperOps_DataCollectors.cs" />
     <Compile Include="Helpers\HelperOps_NearestFinders.cs" />
     <Compile Include="Helpers\HelperOps_ViewOps.cs" />
     <Compile Include="InputData.cs" />
-    <Compile Include="SocketBoxConduitBot.cs" />
-    <Compile Include="SocketBoxConduitTop.cs" />
+    <Compile Include="ManualConduit.cs" />
+    <Compile Include="SettingsSchema_ManualWallBox.cs" />
     <Compile Include="Structs\PointData.cs" />
     <Compile Include="Structs\PointDataStructs.cs" />
     <Compile Include="Structs\SourceData.cs" />
@@ -77,10 +76,13 @@
       <DependentUpon>WallSnapSettingsUI.xaml</DependentUpon>
     </Compile>
     <Compile Include="WallSnap.cs" />
-    <Compile Include="WallSnapSchemaSettings.cs" />
+    <Compile Include="SettingsSchema_WallSnap.cs" />
     <Compile Include="WallSnapSettings.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="BuildScripts\IncrementBuild.ps1" />
+    <None Include="BuildScripts\UpdateGUID.ps1" />
+  </ItemGroup>
   <ItemGroup>
     <Page Include="UI\View\WallSnapSettingsUI.xaml">
       <SubType>Designer</SubType>
@@ -88,4 +90,24 @@
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>mkdir "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox"
+xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox" /Y /I /E
+
+mkdir "C:\Epic\RevitAddInsSetup\2022\Apps\EpicWallBox"
+mkdir "C:\Epic\RevitAddInsSetup\2023\Apps\EpicWallBox"
+
+mkdir "C:\Epic\RevitAddIns\2022\Apps\EpicWallBox"
+mkdir "C:\Epic\RevitAddIns\2023\Apps\EpicWallBox"
+
+xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddInsSetup\2022\Apps\EpicWallBox" /Y /I /E
+xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddInsSetup\2023\Apps\EpicWallBox" /Y /I /E
+
+xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddIns\2022\Apps\EpicWallBox" /Y /I /E
+xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddIns\2023\Apps\EpicWallBox" /Y /I /E</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>Powershell -File "$(ProjectDir)BuildScripts\UpdateGUID.ps1" "$(ProjectDir)\Properties\AssemblyInfo.cs"
+Powershell -File "$(ProjectDir)BuildScripts\IncrementBuild.ps1" "$(ProjectDir)\Properties\AssemblyInfo.cs"</PreBuildEvent>
+  </PropertyGroup>
 </Project>

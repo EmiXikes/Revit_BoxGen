@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EpicWallBoxGen.UI.ViewModel
+namespace EpicWallBox.UI.ViewModel
 {
 
     /// <summary>

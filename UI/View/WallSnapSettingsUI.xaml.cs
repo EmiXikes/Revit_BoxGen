@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace EpicWallBoxGen.UI.View
+namespace EpicWallBox.UI.View
 {
     /// <summary>
     /// Interaction logic for WallSnapSettingsUI.xaml

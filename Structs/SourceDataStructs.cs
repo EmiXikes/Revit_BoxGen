@@ -1,4 +1,4 @@
-﻿namespace EpicWallBoxGen
+﻿namespace EpicWallBox
 {
     public class SourceDataStructs
     {

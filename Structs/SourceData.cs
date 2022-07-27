@@ -1,8 +1,8 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
-using static EpicWallBoxGen.SourceDataStructs;
+using static EpicWallBox.SourceDataStructs;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     internal class SourceData
     {

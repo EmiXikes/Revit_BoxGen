@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     class NearestWallPoint
     {

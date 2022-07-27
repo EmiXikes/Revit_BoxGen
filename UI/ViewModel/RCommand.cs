@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace EpicWallBoxGen.UI.ViewModel
+namespace EpicWallBox.UI.ViewModel
 {
     public class RCommand : ICommand
     {

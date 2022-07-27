@@ -2,7 +2,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Electrical;
 using Autodesk.Revit.UI;
-using EpicWallBoxGen;
+using EpicWallBox;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,11 +12,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
-using static EpicWallBoxGen.SourceDataStructs;
-using static EpicWallBoxGen.InputData;
-using static EpicWallBoxGen.HelperOps_Creators;
+using static EpicWallBox.SourceDataStructs;
+using static EpicWallBox.InputData;
+using static EpicWallBox.HelperOps_Creators;
+using static EpicWallBox.SettingsSchema_WallSnap;
 
-namespace EpicWallBoxGen
+namespace EpicWallBox
 {
     [Transaction(TransactionMode.Manual)]
     internal class BoxGen : HelperOps, IExternalCommand
@@ -37,6 +38,9 @@ namespace EpicWallBoxGen
                 SourceElementNameFilter = SelectedNamesFilter,
                 SourceDataType = SourceDataType
             };
+
+            sData.SourceRVTDocName = "BALT59_HVAC";
+            sData.SourceRVTLevelName = "1st Floor";
 
             List<FamilyInstance> linkedFixtures = new List<FamilyInstance>();
 
@@ -68,27 +72,27 @@ namespace EpicWallBoxGen
 
             var scBoxFamSymbol = (FamilySymbol)new FilteredElementCollector(doc).
                 OfCategory(BuiltInCategory.OST_MechanicalEquipment).
-                FirstOrDefault(x => x.Name == BoxFamilyTypeName);
+                FirstOrDefault(x => x.Name == SocketBoxFamilyTypeName);
             var scFloorCornerFamSymbol = (FamilySymbol)new FilteredElementCollector(doc).
                 OfCategory(BuiltInCategory.OST_MechanicalEquipment).
-                FirstOrDefault(x => x.Name == FloorCornerSingleTypeName);
+                FirstOrDefault(x => x.Name == ConnectionBoxBottomSingleTypeName);
             var scCeilingCornerFamSymbol = (FamilySymbol)new FilteredElementCollector(doc).
                 OfCategory(BuiltInCategory.OST_MechanicalEquipment).
-                FirstOrDefault(x => x.Name == CeilingCornerSingleTypeName);
+                FirstOrDefault(x => x.Name == ConnectionBoxTopSingleTypeName);
 
             var conduitTypes =
                 new FilteredElementCollector(doc)
                 .OfClass(typeof(ConduitType))
                 .OfType<ConduitType>()
                 .ToList();
-            ConduitType conduitType = conduitTypes.FirstOrDefault(n => n.Name == "Conduit PVC");
+            ConduitType conduitType = conduitTypes.FirstOrDefault(n => n.Name == ConduitTypeName);
 
             #endregion
 
             // Survey point
             XYZ surveyPoint = HelperOps_DataCollectors.GetSurveyPoint(doc);
 
-            WallSnapSettingsData MySettings = GetUserSettings_WallboxGen(doc);
+            SettingsObj MySettings = GetUserSettings_WallboxGen(doc);
 
             foreach (var LinkedFixture in linkedFixtures)
             {
@@ -105,14 +109,17 @@ namespace EpicWallBoxGen
                     Rotation = XYZ.BasisX.AngleOnPlaneTo(LinkedFixture.FacingOrientation, XYZ.BasisZ) + Math.PI / 2,
                     TargetLevel = TargetLevel,
                     scBoxFamSymbol = scBoxFamSymbol,
-                    scFloorCornerFamSymbol = scFloorCornerFamSymbol,
+                    conBoxBotFamSymbol = scFloorCornerFamSymbol,
                     conduitType = conduitType,
                     InstallationHeight = 0,
                     Description = "",
+                    ConnectionOffset = 0,
+                    SnapSettings = MySettings,
                     ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                     ConnectionEnd = PointDataStructs.ConnectionEnd.BOX,
                     SeperateConduitLine = PointDataStructs.SeperateConduitLine.NO,
                     FixtureEnd = PointDataStructs.FixtureEnd.SOCKET,
+                    SystemMoniker = "AVK",
                 };
 
                 // Custom data additions
