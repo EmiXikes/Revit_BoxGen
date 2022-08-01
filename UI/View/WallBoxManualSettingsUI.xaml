@@ -1,0 +1,71 @@
+﻿<UserControl x:Class="EpicWallBox.UI.View.WallBoxManualSettingsUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EpicWallBox.UI.View"
+             mc:Ignorable="d" 
+             d:DesignHeight="270" d:DesignWidth="450">
+    <Grid>
+        <StackPanel>
+            <TextBlock Text="Welcome" Margin="5,5,0,0" />
+            <StackPanel Orientation="Horizontal" Margin="5,0,0,0">
+                <StackPanel Margin="0">
+                    <TextBlock Text="Terminator Settings" Margin="0,0,0,5"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                        <StackPanel Margin="5">
+                            <TextBlock Text="Top End" Margin="0,0,0,5"/>
+                            <ComboBox Width="100" Height="21"/>
+                        </StackPanel>
+
+                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
+
+                        <StackPanel Margin="5">
+                            <TextBlock Text="Top limit" Margin="0,0,0,5"/>
+                            <ComboBox Width="100" Height="21"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,5,5,5">
+                            <TextBlock Text="Offset" Margin="0,0,0,5"/>
+                            <TextBox Width="70" Height="21"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                        <TextBlock Text="Center stuff" Width="100" VerticalAlignment="Center" Margin="5"/>
+                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                        <TextBlock Text="Vertical offset from selected" Width="100" TextWrapping="Wrap" VerticalAlignment="Center" Margin="5"/>
+                        <TextBox Width="70" Height="21"/>
+
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                        <StackPanel Margin="5">
+                            <TextBlock Text="Bottom End" Margin="0,0,0,5"/>
+                            <ComboBox Width="100" Height="21"/>
+                        </StackPanel>
+
+                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
+
+                        <StackPanel Margin="5">
+                            <TextBlock Text="Bottom limit" Margin="0,0,0,5"/>
+                            <ComboBox Width="100" Height="21"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,5,5,5">
+                            <TextBlock Text="Offset" Margin="0,0,0,5"/>
+                            <TextBox Width="70" Height="21"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+
+
+        </StackPanel>
+    </Grid>
+</UserControl>

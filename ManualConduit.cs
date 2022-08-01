@@ -14,7 +14,9 @@ using System.Windows;
 using System.Windows.Forms;
 using static EpicWallBox.SourceDataStructs;
 using static EpicWallBox.HelperOps_Creators;
+using static EpicWallBox.HelperOps_NearestFinders;
 using static EpicWallBox.InputData;
+using Autodesk.Revit.UI.Selection;
 
 namespace EpicWallBox
 {
@@ -581,7 +583,7 @@ namespace EpicWallBox
                 var SocketBoxWidth = SelectedFI.get_Parameter(new System.Guid("7e384aa5-3ee2-4c95-8162-ddb4d9fa7c74"));
                 if (SocketBoxWidth != null)
                 {
-                    pData.SocketWidthOffset = SocketBoxWidth.AsDouble();
+                    pData.SocketWidthOffset = Math.Abs(SocketBoxWidth.AsDouble());
                 }
 
                 // Location update, level offset and offset to side
@@ -592,7 +594,7 @@ namespace EpicWallBox
                     offsetDistance * Math.Cos(pData.Rotation),
                     offsetDistance * Math.Sin(pData.Rotation),
                     -(LevelOffset.Z));
-                OffsetLocation += deltaOffset;
+                OffsetLocation = OffsetLocation + deltaOffset;
 
                 // Creation
                 pData.scBoxFamSymbol.Activate();
@@ -602,7 +604,7 @@ namespace EpicWallBox
                     (Level)pData.TargetLevel,
                     Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
-                RotateFamilyInstance(CreatedFI, pData.LinkedFixtureLocation, pData.Rotation);
+                RotateFamilyInstance(CreatedFI, OffsetLocation, pData.Rotation);
 
                 // Copy comments
                 CreatedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
@@ -731,7 +733,7 @@ namespace EpicWallBox
                     (Level)pData.TargetLevel,
                     Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
-                RotateFamilyInstance(CreatedFI, pData.LinkedFixtureLocation, pData.Rotation);
+                RotateFamilyInstance(CreatedFI, OffsetLocation, pData.Rotation);
 
                 // Copy comments
                 CreatedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
@@ -764,6 +766,8 @@ namespace EpicWallBox
     [Transaction(TransactionMode.Manual)]
     internal class ManualCenterPlaceholder : HelperOps, IExternalCommand
     {
+        private PickSelectionFilter filter;
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             #region input settings
@@ -787,6 +791,8 @@ namespace EpicWallBox
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
+
+
             #endregion
 
             #region transaction stuff setup
@@ -798,100 +804,99 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            //GetSymbols(FamTypeNames, pData);
-
-            //GetSettings(pData);
-
             Transaction trans = new Transaction(doc);
-            trans.Start("Nothing");
+            trans.Start("Add SocketBox to selected");
 
-            System.Windows.MessageBox.Show("What should this button do?","Question");
+            #region Picking the correct element
 
-            //var selection = uidoc.Selection.GetElementIds();
+            List<BuiltInCategory> AllowedCats = new List<BuiltInCategory>()
+            {
+                BuiltInCategory.OST_ElectricalFixtures
+            };
 
-            //foreach (ElementId selectedElementId in selection)
-            //{
+            PickSelectionFilter filter = new PickSelectionFilter(doc, AllowedCats);
 
-            //    Element SelectedElement = doc.GetElement(selectedElementId);
-            //    FamilyInstance SelectedFI = (FamilyInstance)SelectedElement;
+            var r = uidoc.Selection.PickObject(
+              ObjectType.PointOnElement, filter,
+              "Pick something");
+            Element PickedElement;
+            var e = doc.GetElement(r.ElementId);
+            if (e is RevitLinkInstance)
+            {
+                Document LinkedDoc = ((RevitLinkInstance)e).GetLinkDocument();
+                PickedElement = LinkedDoc.GetElement(r.LinkedElementId);
+            }
+            else
+            {
+                PickedElement = e;
+            }
 
-            //    // Validity check
-            //    #region Validity check
-            //    var epicID = SelectedFI.Symbol.get_Parameter(new System.Guid("e66469d5-4b01-4d47-be17-c3ce2224aac7"));
+            Debug.WriteLine(PickedElement.Name);
 
-            //    if (epicID == null)
-            //    {
-            //        continue;
-            //    }
-            //    else
-            //    {
-            //        //var s1 = epicID.AsString();
-            //        //var s2 = EpicID_SocketBox;
-            //        if (epicID.AsString() != EpicID_SocketBox) continue;
-            //    }
-            //    #endregion
+            #endregion
 
-            //    Element TargetLevel = GetElementLevel(doc, SelectedElement);
+            GetSymbols(FamTypeNames, pData);
+            GetSettings(pData);
 
-            //    pData.LinkedFixtureLocation = (SelectedFI.Location as LocationPoint).Point;
-            //    pData.TargetLevel = TargetLevel;
-            //    pData.Rotation = (SelectedFI.Location as LocationPoint).Rotation;
-            //    pData.SocketWidthOffset = SocketWidthOffset / mmInFt;
-            //    // Try to get socket box width from actual element
-            //    var SocketBoxWidth = SelectedFI.get_Parameter(new System.Guid("7e384aa5-3ee2-4c95-8162-ddb4d9fa7c74"));
-            //    if (SocketBoxWidth != null)
-            //    {
-            //        pData.SocketWidthOffset = SocketBoxWidth.AsDouble();
-            //    }
+            pData.TargetLevel = GetClosestLevel(doc, r.GlobalPoint); ;
+            pData.LinkedFixture = (FamilyInstance)PickedElement;
+            pData.LinkedFixtureLocation = (PickedElement.Location as LocationPoint).Point;
 
-            //    // Location update, level offset and offset to side
-            //    XYZ LevelOffset = new XYZ(0, 0, (pData.TargetLevel as Level).Elevation);
-            //    double offsetDistance = CreationSide * pData.SocketWidthOffset;
-            //    XYZ OffsetLocation = pData.LinkedFixtureLocation;
-            //    XYZ deltaOffset = new XYZ(
-            //        offsetDistance * Math.Cos(pData.Rotation),
-            //        offsetDistance * Math.Sin(pData.Rotation),
-            //        -(LevelOffset.Z));
-            //    OffsetLocation += deltaOffset;
+            pData = WallCoordinateCorrection(doc, pData);
 
-            //    // Creation
-            //    pData.scBoxFamSymbol.Activate();
-            //    var CreatedFI = doc.Create.NewFamilyInstance(
-            //        OffsetLocation,
-            //        pData.scBoxFamSymbol,
-            //        (Level)pData.TargetLevel,
-            //        Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+            CreateSocketBox(doc, pData);
 
-            //    RotateFamilyInstance(CreatedFI, pData.LinkedFixtureLocation, pData.Rotation);
+            uidoc.Selection.SetElementIds(new List<ElementId>() { pData.CreatedScBoxInstane.Id });
 
-            //    // Copy comments
-            //    CreatedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
-            //        Set(SelectedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString());
-
-            //    // Connect to existing box
-            //    var SelectedFICons = SelectedFI.MEPModel.ConnectorManager.Connectors;
-            //    var CreatedFICons = CreatedFI.MEPModel.ConnectorManager.Connectors;
-
-            //    foreach (Connector selectedFICon in SelectedFICons)
-            //    {
-            //        foreach (Connector createdFICon in CreatedFICons)
-            //        {
-            //            if (createdFICon.Origin.IsAlmostEqualTo(selectedFICon.Origin))
-            //            {
-            //                selectedFICon.ConnectTo(createdFICon);
-            //            }
-            //        }
-            //    }
-
-            //    uidoc.Selection.SetElementIds(new List<ElementId>() { CreatedFI.Id });
-
-            //}
+            //CreateDebugMarker(doc, pData.LinkedFixtureLocation);
 
             trans.Commit();
             return transResult;
         }
     }
 
+    class PickSelectionFilter : ISelectionFilter
+    {
+        private Document _doc;
+        private List<BuiltInCategory> _AllowedCats;
+
+        public PickSelectionFilter(Document doc, List<BuiltInCategory> AllowedCats)
+        {
+            _doc = doc;
+            _AllowedCats = AllowedCats;
+        }
+        public Document LinkedDocument { get; private set; } = null;
+        public bool AllowElement(Element elem)
+        {
+            return true;
+        }
+
+        public bool AllowReference(Reference reference, XYZ position)
+        {
+            Element e = _doc.GetElement(reference);
+
+            if (e is RevitLinkInstance)
+            {
+                RevitLinkInstance li = e as RevitLinkInstance;
+                LinkedDocument = li.GetLinkDocument();
+                e = LinkedDocument.GetElement(reference.LinkedElementId);
+            } 
+
+            if (e != null)
+            {
+                BuiltInCategory cat = 0;
+                cat = _AllowedCats.FirstOrDefault(x => ((int)x) == e.Category.Id.IntegerValue);
+
+                if (cat != 0 && cat != (BuiltInCategory)(-1)) return true;
+
+                //return e.Category.Id.IntegerValue == ((int)BuiltInCategory.OST_ElectricalFixtures);
+            }
+
+            return false;
+            
+
+        }
+    }
 
     #endregion
 

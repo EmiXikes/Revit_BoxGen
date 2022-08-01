@@ -47,9 +47,7 @@ namespace EpicWallBox
                 return settings;
             }
 
-            public void Set(
-              Document doc,
-              SettingsObj settings)
+            public void Set(Document doc, SettingsObj settings)
             {
                 DataStorage settingDS = GetSettingsDataStorage(doc);
 
@@ -113,8 +111,6 @@ namespace EpicWallBox
             }
 
             #endregion
-
-
         }
         public static class Schemas
         {

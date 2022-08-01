@@ -269,5 +269,24 @@ namespace EpicWallBox
 
             return null;
         }
+
+        public static Level GetClosestLevel(Document doc, XYZ AbsoluteRefPoint)
+        {
+            // Get level that corresponds to actual location of the element
+            FilteredElementCollector levelCollector = new FilteredElementCollector(doc);
+            List<Level> rvtLevels = levelCollector.OfClass(typeof(Level)).OfType<Level>().OrderBy(lev => lev.Elevation).ToList();
+
+            Level SelectedLevel = (Level)rvtLevels[0];
+            foreach (Level lvl in rvtLevels)
+            {
+                if (AbsoluteRefPoint.Z < lvl.Elevation)
+                {
+                    break;
+                }
+                SelectedLevel = lvl;
+            }
+
+            return SelectedLevel;
+        }
     }
 }

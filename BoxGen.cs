@@ -136,7 +136,7 @@ namespace EpicWallBox
                 // Coordinate corrections
                 #region Coordinate Corrections
                                
-                itemPointData = WallCoordinateCorrection(doc, itemPointData, MySettings);
+                itemPointData = WallCoordinateCorrection(doc, itemPointData);
 
                 #endregion
                                 

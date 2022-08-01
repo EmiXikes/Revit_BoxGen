@@ -34,7 +34,6 @@ namespace EpicWallBox
 
             CreateConduit2(doc, itemPointData);
         }
-
         public static void CreateSocketBox(Document doc, PointData itemPointData)
         {
             double verticalOffset = FixtureCenterOffset.Y;
@@ -335,10 +334,6 @@ namespace EpicWallBox
                 }
             }
         }
-
-
-
-
 
 
         public static void CreateConnectionBox(Document doc, PointData itemPointData)

@@ -31,6 +31,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug2023|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug 2023\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -72,6 +81,12 @@
     <Compile Include="UI\ViewModel\INPC.cs" />
     <Compile Include="UI\ViewModel\RCommand.cs" />
     <Compile Include="UI\ViewModel\WallSnapSettingsVM.cs" />
+    <Compile Include="UI\View\SettingsMainPanel.xaml.cs">
+      <DependentUpon>SettingsMainPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\View\WallBoxManualSettingsUI.xaml.cs">
+      <DependentUpon>WallBoxManualSettingsUI.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\View\WallSnapSettingsUI.xaml.cs">
       <DependentUpon>WallSnapSettingsUI.xaml</DependentUpon>
     </Compile>
@@ -84,6 +99,14 @@
     <None Include="BuildScripts\UpdateGUID.ps1" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="UI\View\SettingsMainPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\View\WallBoxManualSettingsUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\View\WallSnapSettingsUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -91,23 +114,37 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox"
-xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox" /Y /I /E
+    <PostBuildEvent>echo Configuration: $(Configuration)
+if $(Configuration) == Debug2022 goto 2022
+if $(Configuration) == Debug2023 goto 2023
 
+:2022
+mkdir "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox"
 mkdir "C:\Epic\RevitAddInsSetup\2022\Apps\EpicWallBox"
-mkdir "C:\Epic\RevitAddInsSetup\2023\Apps\EpicWallBox"
-
 mkdir "C:\Epic\RevitAddIns\2022\Apps\EpicWallBox"
-mkdir "C:\Epic\RevitAddIns\2023\Apps\EpicWallBox"
-
-xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddInsSetup\2022\Apps\EpicWallBox" /Y /I /E
-xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddInsSetup\2023\Apps\EpicWallBox" /Y /I /E
-
+xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox" /Y /I /E
 xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddIns\2022\Apps\EpicWallBox" /Y /I /E
-xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddIns\2023\Apps\EpicWallBox" /Y /I /E</PostBuildEvent>
+xcopy "$(ProjectDir)bin\Debug\*.*" "C:\Epic\RevitAddInsSetup\2022\Apps\EpicWallBox" /Y /I /E
+goto exit
+
+:2023
+mkdir "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox"
+mkdir "C:\Epic\RevitAddIns\2023\Apps\EpicWallBox"
+mkdir "C:\Epic\RevitAddInsSetup\2023\Apps\EpicWallBox"
+xcopy "$(ProjectDir)bin\Debug 2023\*.*" "C:\Users\User\source\repos\_Revit\Revit_EpicRibbon\bin\Apps\EpicWallBox" /Y /I /E
+xcopy "$(ProjectDir)bin\Debug 2023\*.*" "C:\Epic\RevitAddIns\2023\Apps\EpicWallBox" /Y /I /E
+xcopy "$(ProjectDir)bin\Debug 2023\*.*" "C:\Epic\RevitAddInsSetup\2023\Apps\EpicWallBox" /Y /I /E
+goto exit
+
+:exit</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>Powershell -File "$(ProjectDir)BuildScripts\UpdateGUID.ps1" "$(ProjectDir)\Properties\AssemblyInfo.cs"
-Powershell -File "$(ProjectDir)BuildScripts\IncrementBuild.ps1" "$(ProjectDir)\Properties\AssemblyInfo.cs"</PreBuildEvent>
+    <PreBuildEvent>echo Configuration: $(Configuration)
+if $(Configuration) == Debug2023 goto exit
+
+Powershell -File "$(ProjectDir)BuildScripts\UpdateGUID.ps1" "$(ProjectDir)\Properties\AssemblyInfo.cs"
+Powershell -File "$(ProjectDir)BuildScripts\IncrementBuild.ps1" "$(ProjectDir)\Properties\AssemblyInfo.cs"
+
+:exit</PreBuildEvent>
   </PropertyGroup>
 </Project>

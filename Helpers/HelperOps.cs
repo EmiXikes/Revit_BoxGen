@@ -76,7 +76,7 @@ namespace EpicWallBox
             return CornerBoxLocation;
         }
 
-        public static PointData WallCoordinateCorrection(Document doc, PointData itemPointData, SettingsObj MySettings)
+        public static PointData WallCoordinateCorrection(Document doc, PointData itemPointData)
         {
             XYZ PrefferedDirection = null;
             double WallWidthFactor = 1;
@@ -103,9 +103,18 @@ namespace EpicWallBox
             {
                 var deltaZ = deltaZparam.First().AsDouble();
                 itemPointData.LinkedFixtureLocation = new XYZ(
-                    itemPointData.LinkedFixtureLocation.X,
-                    itemPointData.LinkedFixtureLocation.Y,
-                    (itemPointData.TargetLevel as Level).Elevation + deltaZ);
+                itemPointData.LinkedFixtureLocation.X,
+                itemPointData.LinkedFixtureLocation.Y,
+                itemPointData.LinkedFixtureLocation.Z + deltaZ );
+
+                //if ( itemPointData.TargetLevel != null)
+                //{
+                //    itemPointData.LinkedFixtureLocation = new XYZ(
+                //        itemPointData.LinkedFixtureLocation.X,
+                //        itemPointData.LinkedFixtureLocation.Y,
+                //        (itemPointData.TargetLevel as Level).Elevation + deltaZ);
+                //}
+
             }
 
             // For HVAC only
@@ -115,21 +124,21 @@ namespace EpicWallBox
 
 
             #region creating snap check View
-            RevitLinkType link = doc.GetElement(MySettings.LinkId) as RevitLinkType;
+            RevitLinkType link = doc.GetElement(itemPointData.SnapSettings.LinkId) as RevitLinkType;
 
             //Document CollisionDoc = linkedDocs.FirstOrDefault(d => d.PathName.Contains(link.Name));
 
             Document CollisionDoc = HelperOps_DataCollectors.GetLinkedDocByName(doc, link.Name);
 
 
-            View3D CollisionView = HelperOps_ViewOps.GetOrCreate3DView(doc, MySettings.ViewName);
+            View3D CollisionView = HelperOps_ViewOps.GetOrCreate3DView(doc, itemPointData.SnapSettings.ViewName);
 
             List<BuiltInCategory> CollisionCatsWall = new List<BuiltInCategory>();
             CollisionCatsWall.Add(BuiltInCategory.OST_Walls);
             HelperOps_ViewOps.
                         SetVisibleCats(doc, CollisionCatsWall, CollisionView);
             HelperOps_ViewOps.
-                        SetVisibleLink(doc, MySettings.LinkId, CollisionView);
+                        SetVisibleLink(doc, itemPointData.SnapSettings.LinkId, CollisionView);
             #endregion
 
 
@@ -138,8 +147,8 @@ namespace EpicWallBox
                 CollisionView,
                 CollisionDoc,
                 CollisionCatsWall,
-                MySettings.DistanceRev,
-                MySettings.DistanceFwd,
+                itemPointData.SnapSettings.DistanceRev / mmInFt,
+                itemPointData.SnapSettings.DistanceFwd / mmInFt,
                 PrefferedDirection);
 
             //double RotationAngle = XYZ.BasisX.AngleOnPlaneTo(LinkedFixture.FacingOrientation, XYZ.BasisZ) + Math.PI / 2;

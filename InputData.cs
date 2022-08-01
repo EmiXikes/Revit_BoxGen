@@ -21,7 +21,8 @@ namespace EpicWallBox
         public static SourceType SourceDataType = SourceType.RVT;
         //public static string FixtureBoxTypeName1 = "DOWN";
         //public static string FixtureBoxTypeName2 = "UP";
-        public static string SelectedTargetLevelName = "1st Floor";
+        public static string SelectedTargetLevelName = "Roof 1";
+        //public static string SelectedTargetLevelName = "1st Floor";
         public static Vector2 FixtureCenterOffset = new Vector2(0, 42 / mmInFt);
 
         // Input RVT
@@ -33,6 +34,7 @@ namespace EpicWallBox
 
         //public static string SelectedCollsiionDocName = "";
 
+        //public static string SelectedSourceLevelName = "Roof 1";
         public static string SelectedSourceLevelName = "1. stāvs";
         //public static string SelectedSourceLevelName = "1st Floor";
 
