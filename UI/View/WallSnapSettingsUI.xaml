@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EpicWallBox.UI.View"
              mc:Ignorable="d" 
-             d:DesignHeight="265" d:DesignWidth="200">
+             d:DesignHeight="265" d:DesignWidth="400">
     <UserControl.Resources>
         <DataTemplate x:Key="CollisionCatItemTemplate">
             <!--<local:CollisionCatItem/>-->
@@ -34,16 +34,24 @@
                     <TextBox  Margin="15,0,15,10" TextAlignment="Center" 
                               Text="{Binding DistanceFwd}"/>
                 </StackPanel>
-                <!--<StackPanel Width="150">
-                    <TextBlock  Margin="5"  Text="Collsion categories" />
-                    <ListBox   Margin="5,0,5,0"
-                               ItemTemplate="{DynamicResource CollisionCatItemTemplate}" 
-                               ItemsSource="{Binding CollisionCatItems}"    
-                               />
+                <StackPanel Margin="10,0,0,0" >
+                    <CheckBox Margin="5,5,5,5" Content="Use bounding box center"
+                              IsChecked="{Binding UseBoundingBox}"/>
+                    <CheckBox x:Name="BoxOffsetChBx" IsChecked="{Binding UseBoxOffset}"
+                              Margin="5,5,5,5" Content="Box offset"/>
+                    <DockPanel Margin="15,0,0,10">
+                        <DockPanel IsEnabled="{Binding ElementName=BoxOffsetChBx, Path=IsChecked}">
+                            <TextBlock Text="X:" Margin="0,0,10,0"/>
+                            <TextBox Width="50"  Text="{Binding ScBoxOffsetX}" Margin="0,0,10,0"/>
+                            <TextBlock Text="Y:" Margin="0,0,10,0"/>
+                            <TextBox Width="50"  Text="{Binding ScBoxOffsetY}" Margin="0,0,10,0"/>
+                        </DockPanel>
+
+                    </DockPanel>
+                    
                 </StackPanel>
-                <StackPanel>
-                    <TextBlock Margin="5" Text="Example"/>
-                </StackPanel>-->
+
+
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">

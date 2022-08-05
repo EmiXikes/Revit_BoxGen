@@ -81,11 +81,17 @@
     <Compile Include="UI\ViewModel\INPC.cs" />
     <Compile Include="UI\ViewModel\RCommand.cs" />
     <Compile Include="UI\ViewModel\WallSnapSettingsVM.cs" />
+    <Compile Include="UI\View\AutomaticSettingsUI.xaml.cs">
+      <DependentUpon>AutomaticSettingsUI.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\View\SettingsMainPanel.xaml.cs">
       <DependentUpon>SettingsMainPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\View\WallBoxManualSettingsUI.xaml.cs">
       <DependentUpon>WallBoxManualSettingsUI.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\View\WallDetectionSettingsUI.xaml.cs">
+      <DependentUpon>WallDetectionSettingsUI.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\View\WallSnapSettingsUI.xaml.cs">
       <DependentUpon>WallSnapSettingsUI.xaml</DependentUpon>
@@ -99,6 +105,10 @@
     <None Include="BuildScripts\UpdateGUID.ps1" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="UI\View\AutomaticSettingsUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\View\SettingsMainPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -107,10 +117,20 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UI\View\WallDetectionSettingsUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\View\WallSnapSettingsUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="IMG\BottomBox.png" />
+    <Resource Include="IMG\CenterBox.png" />
+    <Resource Include="IMG\TopBox.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

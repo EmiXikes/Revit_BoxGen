@@ -53,12 +53,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Epic Conduit X");
+            trans.Start("Epic Conduit Manual down");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -83,6 +81,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -133,12 +133,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Epic Conduit");
+            trans.Start("Epic Conduit Manual down-left");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -163,6 +161,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -213,12 +213,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Epic Conduit");
+            trans.Start("Epic Conduit Manual down-right");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -243,6 +241,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -295,12 +295,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Epic Conduit");
+            trans.Start("Epic Conduit Manual up");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -325,6 +323,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -375,12 +375,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Epic Conduit");
+            trans.Start("Epic Conduit Manual up-left");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -405,6 +403,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -455,12 +455,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Epic Conduit");
+            trans.Start("Epic Conduit Manual up-right");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -485,6 +483,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -542,12 +542,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Add SocketBox Right");
+            trans.Start("Epic SocketBox Add Right");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -572,6 +570,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -671,12 +671,10 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            GetSymbols(FamTypeNames, pData);
-
             GetSettings(pData);
 
             Transaction trans = new Transaction(doc);
-            trans.Start("Add SocketBox Left");
+            trans.Start("Epic SocketBox Add Left");
 
             var selection = uidoc.Selection.GetElementIds();
 
@@ -701,6 +699,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
 
                 Element TargetLevel = GetElementLevel(doc, SelectedElement);
 
@@ -792,7 +792,6 @@ namespace EpicWallBox
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
 
-
             #endregion
 
             #region transaction stuff setup
@@ -804,54 +803,91 @@ namespace EpicWallBox
             pData.doc = doc;
             #endregion
 
-            Transaction trans = new Transaction(doc);
-            trans.Start("Add SocketBox to selected");
-
-            #region Picking the correct element
-
-            List<BuiltInCategory> AllowedCats = new List<BuiltInCategory>()
-            {
-                BuiltInCategory.OST_ElectricalFixtures
-            };
-
-            PickSelectionFilter filter = new PickSelectionFilter(doc, AllowedCats);
-
-            var r = uidoc.Selection.PickObject(
-              ObjectType.PointOnElement, filter,
-              "Pick something");
-            Element PickedElement;
-            var e = doc.GetElement(r.ElementId);
-            if (e is RevitLinkInstance)
-            {
-                Document LinkedDoc = ((RevitLinkInstance)e).GetLinkDocument();
-                PickedElement = LinkedDoc.GetElement(r.LinkedElementId);
-            }
-            else
-            {
-                PickedElement = e;
-            }
-
-            Debug.WriteLine(PickedElement.Name);
-
-            #endregion
-
-            GetSymbols(FamTypeNames, pData);
             GetSettings(pData);
 
-            pData.TargetLevel = GetClosestLevel(doc, r.GlobalPoint); ;
-            pData.LinkedFixture = (FamilyInstance)PickedElement;
-            pData.LinkedFixtureLocation = (PickedElement.Location as LocationPoint).Point;
+            List<ElementId> CreatedElements = new List<ElementId>();
 
-            pData = WallCoordinateCorrection(doc, pData);
+            while (1 == 1)
+            {
+                Transaction trans = new Transaction(doc);
+                trans.Start("Epic SocketBox add from picked");
+                try
+                {
+                    #region Picking the correct element
 
-            CreateSocketBox(doc, pData);
+                    List<BuiltInCategory> AllowedCats = new List<BuiltInCategory>()
+                        {
+                            BuiltInCategory.OST_ElectricalFixtures,
+                            BuiltInCategory.OST_GenericModel,
+                        };
 
-            uidoc.Selection.SetElementIds(new List<ElementId>() { pData.CreatedScBoxInstane.Id });
+                    PickSelectionFilter PickFilter = new PickSelectionFilter(doc, AllowedCats);
 
-            //CreateDebugMarker(doc, pData.LinkedFixtureLocation);
+                    var r = uidoc.Selection.PickObject(
+                      ObjectType.PointOnElement, PickFilter,
+                      "Pick something");
 
-            trans.Commit();
-            return transResult;
+                    //var rs = uidoc.Selection.PickObjects(
+                    //  ObjectType.PointOnElement, filter,
+                    //  "Pick something");
+
+
+                    Element PickedElement;
+                    var e = doc.GetElement(r.ElementId);
+                    if (e is RevitLinkInstance)
+                    {
+                        Document LinkedDoc = ((RevitLinkInstance)e).GetLinkDocument();
+                        PickedElement = LinkedDoc.GetElement(r.LinkedElementId);
+                    }
+                    else
+                    {
+                        PickedElement = e;
+                    }
+
+                    Debug.WriteLine(PickedElement.Name);
+
+                    #endregion
+
+                    pData.TargetLevel = GetClosestLevel(doc, r.GlobalPoint); ;
+                    pData.LinkedFixture = (FamilyInstance)PickedElement;
+                    pData.LinkedFixtureLocation = (PickedElement.Location as LocationPoint).Point;
+
+                    #region Bounding Box
+                    // BoundingBox variation
+                    // Needs a setting for this
+
+                    if (pData.SnapSettings.UseBoundingBox)
+                    {
+                        var bb = PickedElement.get_BoundingBox(null);
+                        var bbc = (bb.Max + bb.Min) / 2;
+                        pData.LinkedFixtureLocation = bbc;
+                    }
+                    // BoundingBox variation
+
+                    #endregion
+
+                    pData = WallCoordinateCorrection(doc, pData);
+
+                    GetOrLoadSymbols(FamTypeNames, pData);
+
+                    CreateSocketBox(doc, pData);
+                    CreatedElements.Add(pData.CreatedScBoxInstane.Id);
+                    
+                    trans.Commit();
+                }
+                catch (Autodesk.Revit.Exceptions.OperationCanceledException)
+                {   
+                    //ESC pressed
+                    uidoc.Selection.SetElementIds(CreatedElements);
+                    trans.Commit();
+                    return Result.Succeeded;
+                }
+                catch (Exception Ex)
+                {
+                    System.Windows.MessageBox.Show(Ex.Message);
+                    return Result.Failed;
+                }
+            }
         }
     }
 
@@ -897,6 +933,8 @@ namespace EpicWallBox
 
         }
     }
+
+
 
     #endregion
 
@@ -961,6 +999,8 @@ namespace EpicWallBox
                     if (epicID.AsString() != EpicID_SocketBox) continue;
                 }
                 #endregion
+
+                //GetOrLoadSymbols(FamTypeNames, pData);
 
                 int SearchDepth = 10;
 

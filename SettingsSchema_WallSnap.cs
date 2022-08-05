@@ -23,6 +23,14 @@ namespace EpicWallBox
         //    Set:
         //       SettingsData.Set(doc, MySettings);
 
+        // To add new entries, they must be added/changed in 4 places:
+        // 1) in SettingsObj
+        // 2) in SettingsData.Get()
+        // 3) in SettingsData.Set()
+        // 4) in Schemas.Settings.GetSchema()
+        //
+        //!! When adding new entries, GUIDs must be changed in Schemas.GUIDs
+
         #endregion
 
         // Settings object for data to be saved to RVT file
@@ -33,11 +41,19 @@ namespace EpicWallBox
             // 2) in SettingsData.Get()
             // 3) in SettingsData.Set()
             // 4) in Schemas.Settings.GetSchema()
+            //
+            //!! When adding new entries, GUIDs must be changed in Schemas.GUIDs
 
             public string ViewName { get; set; }
             public double DistanceRev { get; set; }
             public double DistanceFwd { get; set; }
             public ElementId LinkId { get; set; }
+
+            public double ScBoxOffsetX { get; set; }
+            public double ScBoxOffsetY { get; set; }
+            public bool UseBoundingBox { get; set; }
+            public bool UseBoxOffset { get; set; }
+
         }
         // Get or set actual setting values
         public class SettingsData
@@ -58,6 +74,11 @@ namespace EpicWallBox
                 settings.DistanceRev = settingsEntity.Get<double>("DistanceRev", UnitTypeId.Millimeters);
                 settings.DistanceFwd = settingsEntity.Get<double>("DistanceFwd", UnitTypeId.Millimeters);
                 settings.LinkId = settingsEntity.Get<ElementId>("LinkId");
+                settings.ScBoxOffsetX = settingsEntity.Get<double>("ScBoxOffsetX", UnitTypeId.Millimeters);
+                settings.ScBoxOffsetY = settingsEntity.Get<double>("ScBoxOffsetY", UnitTypeId.Millimeters);
+                settings.UseBoundingBox = settingsEntity.Get<bool>("UseBoundingBox");
+                settings.UseBoxOffset = settingsEntity.Get<bool>("UseBoxOffset");
+                
 
                 return settings;
             }
@@ -79,6 +100,10 @@ namespace EpicWallBox
                 settingsEntity.Set("DistanceRev", settings.DistanceRev, UnitTypeId.Millimeters);
                 settingsEntity.Set("DistanceFwd", settings.DistanceFwd, UnitTypeId.Millimeters);
                 settingsEntity.Set("LinkId", settings.LinkId);
+                settingsEntity.Set("ScBoxOffsetX", settings.ScBoxOffsetX, UnitTypeId.Millimeters);
+                settingsEntity.Set("ScBoxOffsetY", settings.ScBoxOffsetY, UnitTypeId.Millimeters);
+                settingsEntity.Set("UseBoundingBox", settings.UseBoundingBox);
+                settingsEntity.Set("UseBoxOffset", settings.UseBoxOffset);
 
                 //Identify settings data storage
 
@@ -136,9 +161,9 @@ namespace EpicWallBox
             public static class GUIDs 
             { 
                 public readonly static Guid Settings = new Guid(
-                    "114546bc-d03f-462f-a2c8-929013cde0d4");
+                    "bc5269fc-09e1-45e7-8609-ddbbc649bb96");
                 public readonly static Guid ID = new Guid(
-                    "b411ee7d-d1cc-4b1e-aa6b-d7a2e1a6667d");
+                    "27313acb-a0ae-4f64-bd81-3774ae2c81bf");
             }
 
             // Get or create Schemas for settings.
@@ -171,6 +196,15 @@ namespace EpicWallBox
                         myField.SetSpec(SpecTypeId.Length);
 
                         myField = schemaBuilder.AddSimpleField("LinkId", typeof(ElementId));
+
+                        myField = schemaBuilder.AddSimpleField("ScBoxOffsetX", typeof(double));
+                        myField.SetSpec(SpecTypeId.Length);
+
+                        myField = schemaBuilder.AddSimpleField("ScBoxOffsetY", typeof(double));
+                        myField.SetSpec(SpecTypeId.Length);
+
+                        schemaBuilder.AddSimpleField("UseBoundingBox", typeof(bool));
+                        schemaBuilder.AddSimpleField("UseBoxOffset", typeof(bool));
 
                         return schemaBuilder.Finish();
                     }

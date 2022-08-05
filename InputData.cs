@@ -23,7 +23,7 @@ namespace EpicWallBox
         //public static string FixtureBoxTypeName2 = "UP";
         public static string SelectedTargetLevelName = "Roof 1";
         //public static string SelectedTargetLevelName = "1st Floor";
-        public static Vector2 FixtureCenterOffset = new Vector2(0, 42 / mmInFt);
+        //public static Vector2 FixtureCenterOffset = new Vector2(0, 42 / mmInFt); <-- moved to settings
 
         // Input RVT
         public static BuiltInCategory SelectedSourceCategory = BuiltInCategory.OST_ElectricalFixtures;
@@ -41,10 +41,21 @@ namespace EpicWallBox
         //public static double FloorLevelOffset = 0;
         //public static double CeilingLevelOffset = 0;
 
+        #region Family Resources
+
+        public static string FamilyResourcesPath = @"C:\Epic\RevitAddInsSetup\Resources\Families\BoxGen";
+        // Family names (file names)
+        public static string ScBoxFamilyName = "ConcreteBox";
+        public static string ConBoxBotFamilyName = "ConcreteVoid_FloorCorner_Single";
+        public static string ConduitBendFamilyName = "ConcreteConduitBend";
+
+        // Type names
         public static string SocketBoxFamilyTypeName = "Socket Box Concrete (d=50)";
         public static string ConnectionBoxBottomSingleTypeName = "ConcreteVoid_FloorCorner_Single";
         public static string ConnectionBoxTopSingleTypeName = "ConcreteVoid_CeilingCorner_Single";
-        public static string ConduitTypeName = "Conduit PVC";
+        public static string ConduitTypeName = "Concrete Conduit";
+
+        #endregion
 
         public static string EpicID_SocketBox = "WallBox_SocketBox";
 

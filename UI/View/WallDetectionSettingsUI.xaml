@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="EpicWallBox.UI.View.WallDetectionSettingsUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EpicWallBox.UI.View"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="600">
+    <UserControl.Resources>
+
+        <DataTemplate x:Key="CatSelectorItemTemplate">
+            <Grid>
+                <CheckBox Content="Category Item"/>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+
+        <StackPanel Width="450" HorizontalAlignment="Left">
+            <CheckBox x:Name="DetectionEnabledCheckbox" IsChecked="True"
+                      Content="Use wall and floor detection" Margin="5,15,0,15" />
+            <StackPanel Margin="10,0,0,0" IsEnabled="{Binding ElementName=DetectionEnabledCheckbox, Path=IsChecked}" >
+                <TextBlock Margin="5,5,5,5" Text="Link used for wall detection" />
+                <ComboBox Margin="15,0,15,10" 
+                            ItemsSource="{Binding CollisionLinkNames}" SelectedIndex="{Binding SelectedIndex}"/>
+                <TextBlock Margin="5,5,5,5" Text="Categories" />
+                <ListBox ItemTemplate="{DynamicResource CatSelectorItemTemplate}"  Margin="15,0,15,10" 
+                            ItemsSource="{Binding CollisionLinkNames}" SelectedIndex="{Binding SelectedIndex}"
+                            Height="100" ScrollViewer.VerticalScrollBarVisibility="Visible">
+
+                </ListBox>
+                <TextBlock Margin="5,5,5,5" Text="Created 3D View Name"/>
+                <TextBox  Margin="15,0,15,10" TextAlignment="Center" 
+                            Text="{Binding CollisionViewName}"/>
+                <TextBlock Margin="5,5,5,5" Text="Reverse search distance"/>
+                <TextBox  Margin="15,0,15,10" TextAlignment="Center"
+                            Text="{Binding DistanceRev}"/>
+                <TextBlock Margin="5,5,5,5" Text="Forward search distance" />
+                <TextBox  Margin="15,0,15,10" TextAlignment="Center" 
+                            Text="{Binding DistanceFwd}"/>
+
+
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+</UserControl>

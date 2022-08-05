@@ -94,11 +94,64 @@ namespace EpicWallBox.UI.ViewModel
             }
         }
 
+        public bool UseBoxOffset
+        {
+            get => useBoxOffset; set
+            {
+                if (useBoxOffset != value)
+                {
+                    useBoxOffset = value;
+                    MyPropertyChanged(nameof(UseBoxOffset));
+                }
+            }
+        }
+        public double ScBoxOffsetX
+        {
+            get => scBoxOffsetX; set
+            {
+                if (scBoxOffsetX != value)
+                {
+                    scBoxOffsetX = value;
+                    MyPropertyChanged(nameof(ScBoxOffsetX));
+                }
+            }
+        }
+        public double ScBoxOffsetY
+        {
+            get => scBoxOffsetY; set
+            {
+                if (scBoxOffsetY != value)
+                {
+                    scBoxOffsetY = value;
+                    MyPropertyChanged(nameof(ScBoxOffsetY));
+                }
+
+
+            }
+        }
+        public bool UseBoundingBox
+        {
+            get => useBoundingBox; set
+            {
+                if (useBoundingBox != value)
+                {
+                    useBoundingBox = value;
+                    MyPropertyChanged(nameof(UseBoundingBox));
+                }
+            }
+        }
+
+
         #endregion
 
         public event EventHandler OnRequestClose;
         public ObservableCollection<CollisionCatItem> CollisionCatItems { get; set; }
         public List<RevitLinkType> CollisionLinks;
+        private double scBoxOffsetX;
+        private double scBoxOffsetY;
+        private bool useBoundingBox;
+        private bool useBoxOffset;
+
         public Result RevitTransactionResult { get; set; }
         public RevitLinkType SelectedLink
         {

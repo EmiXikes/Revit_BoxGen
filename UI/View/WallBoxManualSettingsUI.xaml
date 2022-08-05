@@ -5,62 +5,72 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EpicWallBox.UI.View"
              mc:Ignorable="d" 
-             d:DesignHeight="270" d:DesignWidth="450">
+             d:DesignHeight="300" d:DesignWidth="600">
     <Grid>
         <StackPanel>
-            <TextBlock Text="Welcome" Margin="5,5,0,0" />
-            <StackPanel Orientation="Horizontal" Margin="5,0,0,0">
+            <StackPanel Orientation="Horizontal">
                 <StackPanel Margin="0">
-                    <TextBlock Text="Terminator Settings" Margin="0,0,0,5"/>
-
-                    <StackPanel Orientation="Horizontal">
-                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
-                        <StackPanel Margin="5">
-                            <TextBlock Text="Top End" Margin="0,0,0,5"/>
-                            <ComboBox Width="100" Height="21"/>
+                    <TextBlock Text="Elements, used families, types, ect." Margin="0,10,0,10"/>
+                    <TextBlock Text="[. . .]" Margin="0,10,0,10"/>
+                    
+                    <TextBlock Text="Conduit generation" Margin="0,10,0,10"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="350"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <DockPanel>
+                                <Image Width="60" Height="60" Source="/EpicWallBox;component/IMG/TopBox.png"/>
+                                <StackPanel Margin="5">
+                                    <TextBlock Text="Top End" Margin="0,0,0,5"/>
+                                    <ComboBox  Height="21"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <DockPanel>
+                                <Image Width="60" Height="60" Source="/EpicWallBox;component/IMG/CenterBox.png"/>
+                                <!--<Rectangle Width="60" Height="60" Fill="Bisque"/>-->
+                                <TextBlock Text="" Width="100" VerticalAlignment="Center" Margin="5"/>
+                            </DockPanel>
+                            <DockPanel>
+                                <Image Width="60" Height="60" Source="/EpicWallBox;component/IMG/BottomBox.png"/>
+                                <StackPanel Margin="5">
+                                    <TextBlock Text="Bottom End" Margin="0,0,0,5"/>
+                                    <ComboBox Height="21"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="50,0,0,0">
+                            <DockPanel>
+                                <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                                <StackPanel Margin="5" Width="130">
+                                    <TextBlock Text="Top Limit" Margin="0,0,0,5"/>
+                                    <ComboBox  Height="21"/>
+                                </StackPanel>
+                                <StackPanel Margin="5">
+                                    <TextBlock Text="Offset" Margin="0,0,0,5"/>
+                                    <TextBox  Height="21"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <DockPanel>
+                                <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                                <TextBlock Text="Center stuff" Width="100" VerticalAlignment="Center" Margin="5"/>
+                            </DockPanel>
+                            <DockPanel>
+                                <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                                <StackPanel Margin="5" Width="130">
+                                    <TextBlock Text="Bottom Limit" Margin="0,0,0,5"/>
+                                    <ComboBox Height="21"/>
+                                </StackPanel>
+                                <StackPanel Margin="5">
+                                    <TextBlock Text="Offset" Margin="0,0,0,5"/>
+                                    <TextBox  Height="21"/>
+                                </StackPanel>
+                            </DockPanel>
                         </StackPanel>
 
-                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
+                    </Grid>
 
-                        <StackPanel Margin="5">
-                            <TextBlock Text="Top limit" Margin="0,0,0,5"/>
-                            <ComboBox Width="100" Height="21"/>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,5,5,5">
-                            <TextBlock Text="Offset" Margin="0,0,0,5"/>
-                            <TextBox Width="70" Height="21"/>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal">
-                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
-                        <TextBlock Text="Center stuff" Width="100" VerticalAlignment="Center" Margin="5"/>
-                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
-                        <TextBlock Text="Vertical offset from selected" Width="100" TextWrapping="Wrap" VerticalAlignment="Center" Margin="5"/>
-                        <TextBox Width="70" Height="21"/>
-
-
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal">
-                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
-                        <StackPanel Margin="5">
-                            <TextBlock Text="Bottom End" Margin="0,0,0,5"/>
-                            <ComboBox Width="100" Height="21"/>
-                        </StackPanel>
-
-                        <Rectangle Width="60" Height="60" Fill="Bisque"/>
-
-                        <StackPanel Margin="5">
-                            <TextBlock Text="Bottom limit" Margin="0,0,0,5"/>
-                            <ComboBox Width="100" Height="21"/>
-                        </StackPanel>
-                        <StackPanel Margin="0,5,5,5">
-                            <TextBlock Text="Offset" Margin="0,0,0,5"/>
-                            <TextBox Width="70" Height="21"/>
-                        </StackPanel>
-                    </StackPanel>
                 </StackPanel>
 
             </StackPanel>

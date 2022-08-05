@@ -36,16 +36,18 @@ namespace EpicWallBox
         }
         public static void CreateSocketBox(Document doc, PointData itemPointData)
         {
-            double verticalOffset = FixtureCenterOffset.Y;
-            XYZ OffsetXYZ = new XYZ(0, 0, verticalOffset);
+            if (itemPointData.SnapSettings.UseBoxOffset)
+            {
+                double verticalOffset = itemPointData.SnapSettings.ScBoxOffsetY / mmInFt;
+                //double horizontalOffset = itemPointData.SnapSettings.ScBoxOffsetX / mmInFt;
 
-            itemPointData.LinkedFixtureLocation += OffsetXYZ;
+                XYZ OffsetXYZ = new XYZ(0, 0, verticalOffset);
+                itemPointData.LinkedFixtureLocation += OffsetXYZ;
+            }
 
             XYZ LevelOffset = new XYZ(0, 0, (itemPointData.TargetLevel as Level).Elevation);
 
             itemPointData.LinkedFixtureLocation -= LevelOffset;
-
-            Debug.WriteLine(String.Format("Fixture offset: [{0}]", OffsetXYZ));
 
             itemPointData.scBoxFamSymbol.Activate();
             itemPointData.CreatedScBoxInstane = doc.Create.NewFamilyInstance(

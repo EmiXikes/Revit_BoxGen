@@ -14,6 +14,8 @@ namespace EpicWallBox
 {
     internal class HelperOps
     {
+        
+
         public static void RotateFamilyInstance(FamilyInstance ElementInstance, XYZ CenterPoint, double RotationAngle)
         {
 
@@ -183,7 +185,7 @@ namespace EpicWallBox
             return MySettings;
         }
 
-        public static void GetSymbols(ManualWallBoxFamilyTypeNames FamTypeNames, PointData pData)
+        public static void GetOrLoadSymbols(ManualWallBoxFamilyTypeNames FamTypeNames, PointData pData)
         {
             var conduitTypes =
                 new FilteredElementCollector(pData.doc)
@@ -192,13 +194,63 @@ namespace EpicWallBox
                 .ToList();
             pData.conduitType = conduitTypes.FirstOrDefault(n => n.Name == FamTypeNames.conduitTypeName);
 
+            if (pData.conduitType == null)
+            {
+                var conduitFamilies =
+                new FilteredElementCollector(pData.doc)
+                .OfClass(typeof(ConduitType))
+                .OfType<ConduitType>()
+                .ToList();
+
+                var SourceConduitFamilyType = conduitFamilies.First(f => f.IsWithFitting);
+                var ConduitFamilyType = SourceConduitFamilyType.Duplicate(FamTypeNames.conduitTypeName);
+                string ConduitBend = System.IO.Path.Combine(FamilyResourcesPath, ConduitBendFamilyName) + ".rfa";
+
+                pData.doc.LoadFamilySymbol(ConduitBend, ConduitBendFamilyName, out var CBend);
+                ConduitFamilyType.get_Parameter(BuiltInParameter.RBS_CURVETYPE_DEFAULT_ELBOW_PARAM).Set(CBend.Id);
+
+                pData.conduitType = (ConduitType)ConduitFamilyType;
+            }
+
+
+
+            // conboxBot
             pData.conBoxBotFamSymbol = (FamilySymbol)new FilteredElementCollector(pData.doc).
                 OfCategory(BuiltInCategory.OST_MechanicalEquipment).
                 FirstOrDefault(x => x.Name == FamTypeNames.conBoxBotFamTypeName);
 
+            if (pData.scBoxFamSymbol == null)
+            {
+                string ConBoxBotpath = System.IO.Path.Combine(FamilyResourcesPath, ConBoxBotFamilyName) + ".rfa";
+                //pData.doc.LoadFamily(ConBoxBotpath);
+                pData.doc.LoadFamilySymbol(ConBoxBotpath, FamTypeNames.conBoxBotFamTypeName, out var S);
+                pData.conBoxBotFamSymbol = S;
+
+                //pData.conBoxBotFamSymbol = (FamilySymbol)new FilteredElementCollector(pData.doc).
+                //OfCategory(BuiltInCategory.OST_MechanicalEquipment).
+                //FirstOrDefault(x => x.Name == FamTypeNames.conBoxBotFamTypeName);
+            }
+
+            // scBox
             pData.scBoxFamSymbol = (FamilySymbol)new FilteredElementCollector(pData.doc).
                 OfCategory(BuiltInCategory.OST_MechanicalEquipment).
                 FirstOrDefault(x => x.Name == FamTypeNames.scBoxFamTypeName);
+
+            if (pData.scBoxFamSymbol == null)
+            {
+                string scBoxpath = System.IO.Path.Combine(FamilyResourcesPath, ScBoxFamilyName) + ".rfa";
+                //pData.doc.LoadFamily(scBoxpath);
+                pData.doc.LoadFamilySymbol(scBoxpath, FamTypeNames.scBoxFamTypeName, out var S);
+                pData.scBoxFamSymbol = S;
+
+
+                //pData.scBoxFamSymbol = (FamilySymbol)new FilteredElementCollector(pData.doc).
+                //OfCategory(BuiltInCategory.OST_MechanicalEquipment).
+                //FirstOrDefault(x => x.Name == FamTypeNames.scBoxFamTypeName);
+            }
+
+
+
         }
 
         public static void GetSettings(PointData pData)
@@ -224,8 +276,9 @@ namespace EpicWallBox
         public static Element GetElementLevel(Document doc, Element SelectedElement)
         {
             var selectedElementLevel = SelectedElement.GetParameters("Host").First().AsString();
-            selectedElementLevel = selectedElementLevel.Replace(":", "");
-            selectedElementLevel = selectedElementLevel.Replace("Level", "").Trim();
+            selectedElementLevel = selectedElementLevel.Replace("Level : ", "");
+            //selectedElementLevel = selectedElementLevel.Replace(":", "");
+            //selectedElementLevel = selectedElementLevel.Replace("Level", "").Trim();
 
             var TargetLevel = new FilteredElementCollector(doc).
                 OfClass(typeof(Level)).
@@ -233,6 +286,8 @@ namespace EpicWallBox
                 FirstOrDefault(L => L.Name == selectedElementLevel);
             return TargetLevel;
         }
+
+        
 
 
     }
