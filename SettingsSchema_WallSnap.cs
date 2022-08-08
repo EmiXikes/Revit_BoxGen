@@ -54,6 +54,10 @@ namespace EpicWallBox
             public bool UseBoundingBox { get; set; }
             public bool UseBoxOffset { get; set; }
 
+            public double ConduitSideOffset { get; set; }
+            public double AdjacentBoxOffset { get; set; }
+            public double BottomFloorOffset { get; set; }
+
         }
         // Get or set actual setting values
         public class SettingsData
@@ -78,7 +82,9 @@ namespace EpicWallBox
                 settings.ScBoxOffsetY = settingsEntity.Get<double>("ScBoxOffsetY", UnitTypeId.Millimeters);
                 settings.UseBoundingBox = settingsEntity.Get<bool>("UseBoundingBox");
                 settings.UseBoxOffset = settingsEntity.Get<bool>("UseBoxOffset");
-                
+                settings.ConduitSideOffset = settingsEntity.Get<double>("ConduitSideOffset", UnitTypeId.Millimeters);
+                settings.AdjacentBoxOffset = settingsEntity.Get<double>("AdjacentBoxOffset", UnitTypeId.Millimeters);
+                settings.BottomFloorOffset = settingsEntity.Get<double>("BottomFloorOffset", UnitTypeId.Millimeters);
 
                 return settings;
             }
@@ -104,6 +110,9 @@ namespace EpicWallBox
                 settingsEntity.Set("ScBoxOffsetY", settings.ScBoxOffsetY, UnitTypeId.Millimeters);
                 settingsEntity.Set("UseBoundingBox", settings.UseBoundingBox);
                 settingsEntity.Set("UseBoxOffset", settings.UseBoxOffset);
+                settingsEntity.Set("ConduitSideOffset", settings.ConduitSideOffset, UnitTypeId.Millimeters);
+                settingsEntity.Set("AdjacentBoxOffset", settings.AdjacentBoxOffset, UnitTypeId.Millimeters);
+                settingsEntity.Set("BottomFloorOffset", settings.BottomFloorOffset, UnitTypeId.Millimeters);
 
                 //Identify settings data storage
 
@@ -161,9 +170,9 @@ namespace EpicWallBox
             public static class GUIDs 
             { 
                 public readonly static Guid Settings = new Guid(
-                    "bc5269fc-09e1-45e7-8609-ddbbc649bb96");
+                    "5492d78f-6dc5-4c87-bf3d-43bf38432d45");
                 public readonly static Guid ID = new Guid(
-                    "27313acb-a0ae-4f64-bd81-3774ae2c81bf");
+                    "252775c5-d579-4695-96d6-68d0ef476699");
             }
 
             // Get or create Schemas for settings.
@@ -184,7 +193,7 @@ namespace EpicWallBox
                     {
                         SchemaBuilder schemaBuilder = new SchemaBuilder(schemaGuid);
 
-                        schemaBuilder.SetSchemaName("LumiSnapSettings");
+                        schemaBuilder.SetSchemaName("WallBoxSettings");
 
                         FieldBuilder myField;
                         schemaBuilder.AddSimpleField("ViewName", typeof(string));
@@ -205,6 +214,15 @@ namespace EpicWallBox
 
                         schemaBuilder.AddSimpleField("UseBoundingBox", typeof(bool));
                         schemaBuilder.AddSimpleField("UseBoxOffset", typeof(bool));
+
+                        myField = schemaBuilder.AddSimpleField("ConduitSideOffset", typeof(double));
+                        myField.SetSpec(SpecTypeId.Length);
+
+                        myField = schemaBuilder.AddSimpleField("AdjacentBoxOffset", typeof(double));
+                        myField.SetSpec(SpecTypeId.Length);
+
+                        myField = schemaBuilder.AddSimpleField("BottomFloorOffset", typeof(double));
+                        myField.SetSpec(SpecTypeId.Length);
 
                         return schemaBuilder.Finish();
                     }

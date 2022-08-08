@@ -35,10 +35,11 @@ namespace EpicWallBox
                 conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
             };
 
+            int ConduitSideDirection = 0;
+
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 0,
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
@@ -54,6 +55,8 @@ namespace EpicWallBox
             #endregion
 
             GetSettings(pData);
+
+            pData.ConnectionSideOffset = pData.pSettings.ConduitSideOffset * ConduitSideDirection;
 
             Transaction trans = new Transaction(doc);
             trans.Start("Epic Conduit Manual down");
@@ -115,10 +118,11 @@ namespace EpicWallBox
                 conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
             };
 
+            int ConduitSideDirection = 1;
+
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 100,
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
@@ -134,6 +138,8 @@ namespace EpicWallBox
             #endregion
 
             GetSettings(pData);
+
+            pData.ConnectionSideOffset = pData.pSettings.ConduitSideOffset * ConduitSideDirection;
 
             Transaction trans = new Transaction(doc);
             trans.Start("Epic Conduit Manual down-left");
@@ -195,10 +201,11 @@ namespace EpicWallBox
                 conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
             };
 
+            int ConduitSideDirection = -1;
+
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = -100,
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
@@ -214,6 +221,8 @@ namespace EpicWallBox
             #endregion
 
             GetSettings(pData);
+
+            pData.ConnectionSideOffset = pData.pSettings.ConduitSideOffset * ConduitSideDirection;
 
             Transaction trans = new Transaction(doc);
             trans.Start("Epic Conduit Manual down-right");
@@ -277,10 +286,11 @@ namespace EpicWallBox
                 conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
             };
 
+            int ConduitSideDirection = 0;
+
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 0,
                 ConduitDirection = PointDataStructs.ConduitDirection.UP,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.CONDUIT
             };
@@ -296,6 +306,8 @@ namespace EpicWallBox
             #endregion
 
             GetSettings(pData);
+
+            pData.ConnectionSideOffset = pData.pSettings.ConduitSideOffset * ConduitSideDirection;
 
             Transaction trans = new Transaction(doc);
             trans.Start("Epic Conduit Manual up");
@@ -357,10 +369,11 @@ namespace EpicWallBox
                 conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
             };
 
+            int ConduitSideDirection = 1;
+
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 100,
                 ConduitDirection = PointDataStructs.ConduitDirection.UP,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.CONDUIT
             };
@@ -376,6 +389,8 @@ namespace EpicWallBox
             #endregion
 
             GetSettings(pData);
+
+            pData.ConnectionSideOffset = pData.pSettings.ConduitSideOffset * ConduitSideDirection;
 
             Transaction trans = new Transaction(doc);
             trans.Start("Epic Conduit Manual up-left");
@@ -437,10 +452,11 @@ namespace EpicWallBox
                 conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
             };
 
+            int ConduitSideDirection = -1;
+
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = -100,
                 ConduitDirection = PointDataStructs.ConduitDirection.UP,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.CONDUIT
             };
@@ -456,6 +472,8 @@ namespace EpicWallBox
             #endregion
 
             GetSettings(pData);
+
+            pData.ConnectionSideOffset = pData.pSettings.ConduitSideOffset * ConduitSideDirection;
 
             Transaction trans = new Transaction(doc);
             trans.Start("Epic Conduit Manual up-right");
@@ -505,6 +523,7 @@ namespace EpicWallBox
     #endregion
 
     #region Additional Socket Boxes
+
     [Transaction(TransactionMode.Manual)]
     internal class ManualAddSocketBoxRight : HelperOps, IExternalCommand
     {
@@ -527,7 +546,7 @@ namespace EpicWallBox
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 0,
+                ConnectionSideOffset = 0,
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
@@ -578,17 +597,10 @@ namespace EpicWallBox
                 pData.LinkedFixtureLocation = (SelectedFI.Location as LocationPoint).Point;
                 pData.TargetLevel = TargetLevel;
                 pData.Rotation = (SelectedFI.Location as LocationPoint).Rotation;
-                pData.SocketWidthOffset = SocketWidthOffset / mmInFt;
-                // Try to get socket box width from actual element
-                var SocketBoxWidth = SelectedFI.get_Parameter(new System.Guid("7e384aa5-3ee2-4c95-8162-ddb4d9fa7c74"));
-                if (SocketBoxWidth != null)
-                {
-                    pData.SocketWidthOffset = Math.Abs(SocketBoxWidth.AsDouble());
-                }
 
                 // Location update, level offset and offset to side
                 XYZ LevelOffset = new XYZ(0, 0, (pData.TargetLevel as Level).Elevation);
-                double offsetDistance = CreationSide * pData.SocketWidthOffset;
+                double offsetDistance = CreationSide * pData.pSettings.AdjacentBoxOffset / mmInFt;
                 XYZ OffsetLocation = pData.LinkedFixtureLocation;
                 XYZ deltaOffset = new XYZ(
                     offsetDistance * Math.Cos(pData.Rotation),
@@ -614,14 +626,46 @@ namespace EpicWallBox
                 var SelectedFICons = SelectedFI.MEPModel.ConnectorManager.Connectors;
                 var CreatedFICons = CreatedFI.MEPModel.ConnectorManager.Connectors;
 
-                foreach (Connector selectedFICon in SelectedFICons)
+                if(pData.pSettings.AdjacentBoxOffset <= MinSocketWidth)
                 {
+                    foreach (Connector selectedFICon in SelectedFICons)
+                    {
+                        foreach (Connector createdFICon in CreatedFICons)
+                        {
+                            if (createdFICon.Origin.IsAlmostEqualTo(selectedFICon.Origin))
+                            {
+                                selectedFICon.ConnectTo(createdFICon);
+                            }
+                        }
+                    }
+                } else
+                {
+                    Connector sCon = null;
+                    Connector cCon = null;
+                    foreach (Connector selectedFICon in SelectedFICons)
+                    {
+                        if (selectedFICon.Description == "LeftCon") sCon = selectedFICon;
+                    }
+
                     foreach (Connector createdFICon in CreatedFICons)
                     {
-                        if (createdFICon.Origin.IsAlmostEqualTo(selectedFICon.Origin))
-                        {
-                            selectedFICon.ConnectTo(createdFICon);
-                        }
+                        if (createdFICon.Description == "RightCon") cCon = createdFICon;
+                    }
+
+                    if (sCon != null && cCon != null)
+                    {
+                        Conduit conduitInstance = Conduit.Create(
+                            doc,
+                            pData.conduitType.Id,
+                            sCon.Origin,
+                            cCon.Origin,
+                            pData.TargetLevel.Id
+                            );
+
+                        var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                        diameter.Set(25 / mmInFt);
+                        conduitInstance.ConnectorManager.Lookup(0).ConnectTo(sCon);
+                        conduitInstance.ConnectorManager.Lookup(1).ConnectTo(cCon);
                     }
                 }
 
@@ -656,7 +700,7 @@ namespace EpicWallBox
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 0,
+                ConnectionSideOffset = 0,
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
@@ -707,17 +751,10 @@ namespace EpicWallBox
                 pData.LinkedFixtureLocation = (SelectedFI.Location as LocationPoint).Point;
                 pData.TargetLevel = TargetLevel;
                 pData.Rotation = (SelectedFI.Location as LocationPoint).Rotation;
-                pData.SocketWidthOffset = SocketWidthOffset / mmInFt;
-                // Try to get socket box width from actual element
-                var SocketBoxWidth = SelectedFI.get_Parameter(new System.Guid("7e384aa5-3ee2-4c95-8162-ddb4d9fa7c74"));
-                if (SocketBoxWidth != null)
-                {
-                    pData.SocketWidthOffset = SocketBoxWidth.AsDouble();
-                }
 
                 // Location update, level offset and offset to side
                 XYZ LevelOffset = new XYZ(0, 0, (pData.TargetLevel as Level).Elevation);
-                double offsetDistance = CreationSide * pData.SocketWidthOffset;
+                double offsetDistance = CreationSide * pData.pSettings.AdjacentBoxOffset / mmInFt;
                 XYZ OffsetLocation = pData.LinkedFixtureLocation;
                 XYZ deltaOffset = new XYZ(
                     offsetDistance * Math.Cos(pData.Rotation),
@@ -743,14 +780,47 @@ namespace EpicWallBox
                 var SelectedFICons = SelectedFI.MEPModel.ConnectorManager.Connectors;
                 var CreatedFICons = CreatedFI.MEPModel.ConnectorManager.Connectors;
 
-                foreach (Connector selectedFICon in SelectedFICons)
+                if (pData.pSettings.AdjacentBoxOffset <= MinSocketWidth)
                 {
+                    foreach (Connector selectedFICon in SelectedFICons)
+                    {
+                        foreach (Connector createdFICon in CreatedFICons)
+                        {
+                            if (createdFICon.Origin.IsAlmostEqualTo(selectedFICon.Origin))
+                            {
+                                selectedFICon.ConnectTo(createdFICon);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Connector sCon = null;
+                    Connector cCon = null;
+                    foreach (Connector selectedFICon in SelectedFICons)
+                    {
+                        if (selectedFICon.Description == "RightCon") sCon = selectedFICon;
+                    }
+
                     foreach (Connector createdFICon in CreatedFICons)
                     {
-                        if (createdFICon.Origin.IsAlmostEqualTo(selectedFICon.Origin))
-                        {
-                            selectedFICon.ConnectTo(createdFICon);
-                        }
+                        if (createdFICon.Description == "LeftCon") cCon = createdFICon;
+                    }
+
+                    if (sCon != null && cCon != null)
+                    {
+                        Conduit conduitInstance = Conduit.Create(
+                            doc,
+                            pData.conduitType.Id,
+                            sCon.Origin,
+                            cCon.Origin,
+                            pData.TargetLevel.Id
+                            );
+
+                        var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                        diameter.Set(25 / mmInFt);
+                        conduitInstance.ConnectorManager.Lookup(0).ConnectTo(sCon);
+                        conduitInstance.ConnectorManager.Lookup(1).ConnectTo(cCon);
                     }
                 }
 
@@ -764,16 +834,14 @@ namespace EpicWallBox
     }
 
     [Transaction(TransactionMode.Manual)]
-    internal class ManualCenterPlaceholder : HelperOps, IExternalCommand
+    internal class ManualAddSocketBoxTop : HelperOps, IExternalCommand
     {
-        private PickSelectionFilter filter;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             #region input settings
             // Which side the new socket box should be on.
-            // 1 = left
-            // -1 = right
+            // 1 = up
+            // -1 = down
             int CreationSide = 1;
 
             ManualWallBoxFamilyTypeNames FamTypeNames = new ManualWallBoxFamilyTypeNames()
@@ -787,7 +855,296 @@ namespace EpicWallBox
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 0,
+                ConnectionSideOffset = 0,
+                ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
+                ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
+            };
+            #endregion
+
+            #region transaction stuff setup
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            //Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            Document doc = uidoc.Document;
+            Result transResult = Result.Succeeded;
+            pData.doc = doc;
+            #endregion
+
+            GetSettings(pData);
+
+            Transaction trans = new Transaction(doc);
+            trans.Start("Epic SocketBox Add Left");
+
+            var selection = uidoc.Selection.GetElementIds();
+
+            foreach (ElementId selectedElementId in selection)
+            {
+
+                Element SelectedElement = doc.GetElement(selectedElementId);
+                FamilyInstance SelectedFI = (FamilyInstance)SelectedElement;
+
+                // Validity check
+                #region Validity check
+                var epicID = SelectedFI.Symbol.get_Parameter(new System.Guid("e66469d5-4b01-4d47-be17-c3ce2224aac7"));
+
+                if (epicID == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    //var s1 = epicID.AsString();
+                    //var s2 = EpicID_SocketBox;
+                    if (epicID.AsString() != EpicID_SocketBox) continue;
+                }
+                #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
+
+                Element TargetLevel = GetElementLevel(doc, SelectedElement);
+
+                pData.LinkedFixtureLocation = (SelectedFI.Location as LocationPoint).Point;
+                pData.TargetLevel = TargetLevel;
+                pData.Rotation = (SelectedFI.Location as LocationPoint).Rotation;
+
+                // Location update, level offset and offset to side
+                XYZ LevelOffset = new XYZ(0, 0, (pData.TargetLevel as Level).Elevation);
+                double offsetDistance = CreationSide * pData.pSettings.AdjacentBoxOffset / mmInFt;
+                XYZ OffsetLocation = pData.LinkedFixtureLocation;
+                XYZ deltaOffset = new XYZ(
+                    0,
+                    0,
+                    -(LevelOffset.Z) + offsetDistance);
+                OffsetLocation += deltaOffset;
+
+                // Creation
+                pData.scBoxFamSymbol.Activate();
+                var CreatedFI = doc.Create.NewFamilyInstance(
+                    OffsetLocation,
+                    pData.scBoxFamSymbol,
+                    (Level)pData.TargetLevel,
+                    Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                RotateFamilyInstance(CreatedFI, OffsetLocation, pData.Rotation);
+
+                // Copy comments
+                CreatedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
+                    Set(SelectedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString());
+
+                // Create a conduit between the two boxes and make the needed connections
+                var SelectedFICons = SelectedFI.MEPModel.ConnectorManager.Connectors;
+                var CreatedFICons = CreatedFI.MEPModel.ConnectorManager.Connectors;
+
+                Connector sCon = null;
+                Connector cCon = null;
+
+                foreach (Connector selectedFICon in SelectedFICons)
+                { 
+                    if (selectedFICon.Description == "TopCon")
+                    {
+                        sCon = selectedFICon;
+                    }
+                }
+
+                foreach (Connector createdFICon in CreatedFICons)
+                {
+                    if (createdFICon.Description == "BottomCon")
+                    {
+                        cCon = createdFICon;
+                    }
+                }
+
+                if (sCon != null && cCon != null)
+                {
+                    Conduit conduitInstance = Conduit.Create(
+                        doc,
+                        pData.conduitType.Id,
+                        sCon.Origin,
+                        cCon.Origin,
+                        pData.TargetLevel.Id
+                        );
+
+                    var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                    diameter.Set(20 / mmInFt);
+                    conduitInstance.ConnectorManager.Lookup(0).ConnectTo(sCon);
+                    conduitInstance.ConnectorManager.Lookup(1).ConnectTo(cCon);
+                }
+
+                uidoc.Selection.SetElementIds(new List<ElementId>() { CreatedFI.Id });
+            }
+
+            trans.Commit();
+            return transResult;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    internal class ManualAddSocketBoxBot : HelperOps, IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            #region input settings
+            // Which side the new socket box should be on.
+            // 1 = up
+            // -1 = down
+            int CreationSide = -1;
+
+            ManualWallBoxFamilyTypeNames FamTypeNames = new ManualWallBoxFamilyTypeNames()
+            {
+                conduitTypeName = ConduitTypeName,
+                scBoxFamTypeName = SocketBoxFamilyTypeName,
+                conBoxBotFamTypeName = ConnectionBoxBottomSingleTypeName,
+                conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
+            };
+
+            PointData pData = new PointData()
+            {
+                transferComments = true,
+                ConnectionSideOffset = 0,
+                ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
+                ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
+            };
+            #endregion
+
+            #region transaction stuff setup
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            //Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            Document doc = uidoc.Document;
+            Result transResult = Result.Succeeded;
+            pData.doc = doc;
+            #endregion
+
+            GetSettings(pData);
+
+            Transaction trans = new Transaction(doc);
+            trans.Start("Epic SocketBox Add Left");
+
+            var selection = uidoc.Selection.GetElementIds();
+
+            foreach (ElementId selectedElementId in selection)
+            {
+
+                Element SelectedElement = doc.GetElement(selectedElementId);
+                FamilyInstance SelectedFI = (FamilyInstance)SelectedElement;
+
+                // Validity check
+                #region Validity check
+                var epicID = SelectedFI.Symbol.get_Parameter(new System.Guid("e66469d5-4b01-4d47-be17-c3ce2224aac7"));
+
+                if (epicID == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    //var s1 = epicID.AsString();
+                    //var s2 = EpicID_SocketBox;
+                    if (epicID.AsString() != EpicID_SocketBox) continue;
+                }
+                #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
+
+                Element TargetLevel = GetElementLevel(doc, SelectedElement);
+
+                pData.LinkedFixtureLocation = (SelectedFI.Location as LocationPoint).Point;
+                pData.TargetLevel = TargetLevel;
+                pData.Rotation = (SelectedFI.Location as LocationPoint).Rotation;
+
+                // Location update, level offset and offset to side
+                XYZ LevelOffset = new XYZ(0, 0, (pData.TargetLevel as Level).Elevation);
+                double offsetDistance = CreationSide * pData.pSettings.AdjacentBoxOffset / mmInFt;
+                XYZ OffsetLocation = pData.LinkedFixtureLocation;
+                XYZ deltaOffset = new XYZ(
+                    0,
+                    0,
+                    -(LevelOffset.Z) + offsetDistance);
+                OffsetLocation += deltaOffset;
+
+                // Creation
+                pData.scBoxFamSymbol.Activate();
+                var CreatedFI = doc.Create.NewFamilyInstance(
+                    OffsetLocation,
+                    pData.scBoxFamSymbol,
+                    (Level)pData.TargetLevel,
+                    Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                RotateFamilyInstance(CreatedFI, OffsetLocation, pData.Rotation);
+
+                // Copy comments
+                CreatedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
+                    Set(SelectedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString());
+
+                // Create a conduit between the two boxes and make the needed connections
+                var SelectedFICons = SelectedFI.MEPModel.ConnectorManager.Connectors;
+                var CreatedFICons = CreatedFI.MEPModel.ConnectorManager.Connectors;
+
+                Connector sCon = null;
+                Connector cCon = null;
+
+                foreach (Connector selectedFICon in SelectedFICons)
+                {
+                    if (selectedFICon.Description == "BottomCon")
+                    {
+                        sCon = selectedFICon;
+                    }
+                }
+
+                foreach (Connector createdFICon in CreatedFICons)
+                {
+                    if (createdFICon.Description == "TopCon")
+                    {
+                        cCon = createdFICon;
+                    }
+                }
+
+                if (sCon != null && cCon != null)
+                {
+                    Conduit conduitInstance = Conduit.Create(
+                        doc,
+                        pData.conduitType.Id,
+                        sCon.Origin,
+                        cCon.Origin,
+                        pData.TargetLevel.Id
+                        );
+
+                    var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                    diameter.Set(20 / mmInFt);
+                    conduitInstance.ConnectorManager.Lookup(0).ConnectTo(sCon);
+                    conduitInstance.ConnectorManager.Lookup(1).ConnectTo(cCon);
+                }
+
+                uidoc.Selection.SetElementIds(new List<ElementId>() { CreatedFI.Id });
+            }
+
+            trans.Commit();
+            return transResult;
+        }
+    }
+
+    #region New SocketBox from picked
+
+    [Transaction(TransactionMode.Manual)]
+    internal class ManualAddSocketBoxFromPicked : HelperOps, IExternalCommand
+    {
+        private PickSelectionFilter filter;
+
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            #region input settings
+
+            ManualWallBoxFamilyTypeNames FamTypeNames = new ManualWallBoxFamilyTypeNames()
+            {
+                conduitTypeName = ConduitTypeName,
+                scBoxFamTypeName = SocketBoxFamilyTypeName,
+                conBoxBotFamTypeName = ConnectionBoxBottomSingleTypeName,
+                conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
+            };
+
+            PointData pData = new PointData()
+            {
+                transferComments = true,
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };
@@ -827,11 +1184,6 @@ namespace EpicWallBox
                       ObjectType.PointOnElement, PickFilter,
                       "Pick something");
 
-                    //var rs = uidoc.Selection.PickObjects(
-                    //  ObjectType.PointOnElement, filter,
-                    //  "Pick something");
-
-
                     Element PickedElement;
                     var e = doc.GetElement(r.ElementId);
                     if (e is RevitLinkInstance)
@@ -854,9 +1206,8 @@ namespace EpicWallBox
 
                     #region Bounding Box
                     // BoundingBox variation
-                    // Needs a setting for this
 
-                    if (pData.SnapSettings.UseBoundingBox)
+                    if (pData.pSettings.UseBoundingBox)
                     {
                         var bb = PickedElement.get_BoundingBox(null);
                         var bbc = (bb.Max + bb.Min) / 2;
@@ -890,7 +1241,6 @@ namespace EpicWallBox
             }
         }
     }
-
     class PickSelectionFilter : ISelectionFilter
     {
         private Document _doc;
@@ -934,9 +1284,36 @@ namespace EpicWallBox
         }
     }
 
+    #endregion
 
 
     #endregion
+
+    [Transaction(TransactionMode.Manual)]
+    internal class EmptyPlaceholderButton : HelperOps, IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+
+            #region transaction stuff setup
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            //Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            Document doc = uidoc.Document;
+            Result transResult = Result.Succeeded;
+
+            #endregion
+
+            Transaction trans = new Transaction(doc);
+            trans.Start("Nothing");
+
+            System.Windows.MessageBox.Show("Nothing here, but dragons.", "Nothing");
+
+            trans.Commit();
+            return transResult;
+        }
+    }
+
 
     [Transaction(TransactionMode.Manual)]
     internal class DeleteConnected : HelperOps, IExternalCommand
@@ -956,7 +1333,7 @@ namespace EpicWallBox
             PointData pData = new PointData()
             {
                 transferComments = true,
-                ConnectionOffset = 0,
+                ConnectionSideOffset = 0,
                 ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                 ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
             };

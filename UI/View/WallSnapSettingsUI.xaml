@@ -39,16 +39,26 @@
                               IsChecked="{Binding UseBoundingBox}"/>
                     <CheckBox x:Name="BoxOffsetChBx" IsChecked="{Binding UseBoxOffset}"
                               Margin="5,5,5,5" Content="Box offset"/>
-                    <DockPanel Margin="15,0,0,10">
+                    <DockPanel Margin="15,0,0,5">
                         <DockPanel IsEnabled="{Binding ElementName=BoxOffsetChBx, Path=IsChecked}">
                             <TextBlock Text="X:" Margin="0,0,10,0"/>
                             <TextBox Width="50"  Text="{Binding ScBoxOffsetX}" Margin="0,0,10,0"/>
                             <TextBlock Text="Y:" Margin="0,0,10,0"/>
                             <TextBox Width="50"  Text="{Binding ScBoxOffsetY}" Margin="0,0,10,0"/>
                         </DockPanel>
-
                     </DockPanel>
-                    
+                    <TextBlock Text="Conduit side offset (min 50):" Margin="5,5,5,5" />
+                    <TextBox Margin="36,0,0,0" Width="100" HorizontalAlignment="Left"
+                             Text="{Binding ConduitSideOffset}"/>
+
+                    <TextBlock Text="Adjacent box distance (min 71):" Margin="5,5,5,5" />
+                    <TextBox Margin="36,0,0,0" Width="100" HorizontalAlignment="Left"
+                             Text="{Binding AdjacentBoxOffset}"/>
+
+                    <TextBlock Text="Floor offset:" Margin="5,5,5,5" />
+                    <TextBox Margin="36,0,0,0" Width="100" HorizontalAlignment="Left"
+                             Text="{Binding BottomFloorOffset}"/>
+
                 </StackPanel>
 
 

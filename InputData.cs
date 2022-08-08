@@ -14,22 +14,23 @@ namespace EpicWallBox
     {
         public static float mmInFt = 304.8f;
         public static double MinOffsetDistance = 50;
-        public static double SocketWidthOffset = 71;
+        public static double MinSocketWidth = 71;
 
         #region INPUT DATA
         // Ipnut data 
         public static SourceType SourceDataType = SourceType.RVT;
         //public static string FixtureBoxTypeName1 = "DOWN";
         //public static string FixtureBoxTypeName2 = "UP";
-        public static string SelectedTargetLevelName = "Roof 1";
-        //public static string SelectedTargetLevelName = "1st Floor";
+        //public static string SelectedTargetLevelName = "Roof 1";
+        public static string SelectedTargetLevelName = "1st Floor";
         //public static Vector2 FixtureCenterOffset = new Vector2(0, 42 / mmInFt); <-- moved to settings
 
         // Input RVT
         public static BuiltInCategory SelectedSourceCategory = BuiltInCategory.OST_ElectricalFixtures;
         public static List<string> SelectedNamesFilter = new List<string>();// { "Switch", "Socket"};
 
-        public static string SelectedSourceDocName = "Baltezers house 2022";
+        public static string SelectedSourceDocName = "Baltezers house (BP)";
+        //public static string SelectedSourceDocName = "Baltezers house 2022";
         //public static string SelectedSourceDocName = "BALT59_HVAC";
 
         //public static string SelectedCollsiionDocName = "";

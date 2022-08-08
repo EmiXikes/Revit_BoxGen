@@ -49,7 +49,7 @@ namespace EpicWallBox
             HelperOps_ViewOps.
                         SetVisibleCats(doc, CollisionCatsFloor, CollisionViewFloor);
             HelperOps_ViewOps.
-                        SetVisibleLink(doc, itemPointData.SnapSettings.LinkId, CollisionViewFloor);
+                        SetVisibleLink(doc, itemPointData.pSettings.LinkId, CollisionViewFloor);
             #endregion
 
             XYZ LevelOffset = new XYZ(0, 0, (itemPointData.TargetLevel as Level).Elevation);
@@ -126,21 +126,21 @@ namespace EpicWallBox
 
 
             #region creating snap check View
-            RevitLinkType link = doc.GetElement(itemPointData.SnapSettings.LinkId) as RevitLinkType;
+            RevitLinkType link = doc.GetElement(itemPointData.pSettings.LinkId) as RevitLinkType;
 
             //Document CollisionDoc = linkedDocs.FirstOrDefault(d => d.PathName.Contains(link.Name));
 
             Document CollisionDoc = HelperOps_DataCollectors.GetLinkedDocByName(doc, link.Name);
 
 
-            View3D CollisionView = HelperOps_ViewOps.GetOrCreate3DView(doc, itemPointData.SnapSettings.ViewName);
+            View3D CollisionView = HelperOps_ViewOps.GetOrCreate3DView(doc, itemPointData.pSettings.ViewName);
 
             List<BuiltInCategory> CollisionCatsWall = new List<BuiltInCategory>();
             CollisionCatsWall.Add(BuiltInCategory.OST_Walls);
             HelperOps_ViewOps.
                         SetVisibleCats(doc, CollisionCatsWall, CollisionView);
             HelperOps_ViewOps.
-                        SetVisibleLink(doc, itemPointData.SnapSettings.LinkId, CollisionView);
+                        SetVisibleLink(doc, itemPointData.pSettings.LinkId, CollisionView);
             #endregion
 
 
@@ -149,8 +149,8 @@ namespace EpicWallBox
                 CollisionView,
                 CollisionDoc,
                 CollisionCatsWall,
-                itemPointData.SnapSettings.DistanceRev / mmInFt,
-                itemPointData.SnapSettings.DistanceFwd / mmInFt,
+                itemPointData.pSettings.DistanceRev / mmInFt,
+                itemPointData.pSettings.DistanceFwd / mmInFt,
                 PrefferedDirection);
 
             //double RotationAngle = XYZ.BasisX.AngleOnPlaneTo(LinkedFixture.FacingOrientation, XYZ.BasisZ) + Math.PI / 2;
@@ -258,16 +258,24 @@ namespace EpicWallBox
             #region Getting saved settings
             // getting saved settings
             SettingsData MySettingStorage = new SettingsData();
-            pData.SnapSettings = MySettingStorage.Get(pData.doc);
-            if (pData.SnapSettings == null)
+            pData.pSettings = MySettingStorage.Get(pData.doc);
+            if (pData.pSettings == null)
             {
                 // Default Values
-                pData.SnapSettings = new SettingsObj()
+                pData.pSettings = new SettingsObj()
                 {
-                    DistanceFwd = 1000,
-                    DistanceRev = 0,
-                    ViewName = "EpicWallC"
+                    DistanceFwd = 1500,
+                    DistanceRev = 100,
+                    LinkId = new ElementId(0),
+                    ViewName = "EpicC",
+                    UseBoxOffset = false,
+                    ScBoxOffsetX = 0,
+                    ScBoxOffsetY = 0,
+                    UseBoundingBox = false,
+                    ConduitSideOffset = 100,
+                    AdjacentBoxOffset = 71
                 };
+                MySettingStorage.Set(pData.doc, pData.pSettings);
             }
 
             #endregion

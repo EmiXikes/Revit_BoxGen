@@ -28,9 +28,10 @@ namespace EpicWallBox
 
         public bool transferComments = false;
 
-        public SettingsObj SnapSettings;
-        public double ConnectionOffset;
-        public double SocketWidthOffset = 100;
+        public SettingsObj pSettings;
+        public double ConnectionSideOffset;
+        //public double AdjacentBoxOffset = 71;
+        //public double ConduitSideOffset = 100;
         
         public FamilySymbol scBoxFamSymbol;
         public FamilySymbol conBoxBotFamSymbol;

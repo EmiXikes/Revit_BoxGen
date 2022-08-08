@@ -39,8 +39,8 @@ namespace EpicWallBox
                 SourceDataType = SourceDataType
             };
 
-            sData.SourceRVTDocName = "BALT59_HVAC";
-            sData.SourceRVTLevelName = "1st Floor";
+            sData.SourceRVTDocName = "Baltezers house (BP)";
+            sData.SourceRVTLevelName = "1. stāvs";
 
             List<FamilyInstance> linkedFixtures = new List<FamilyInstance>();
 
@@ -113,13 +113,13 @@ namespace EpicWallBox
                     conduitType = conduitType,
                     InstallationHeight = 0,
                     Description = "",
-                    ConnectionOffset = 0,
-                    SnapSettings = MySettings,
+                    ConnectionSideOffset = 0,
+                    pSettings = MySettings,
                     ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
                     ConnectionEnd = PointDataStructs.ConnectionEnd.BOX,
                     SeperateConduitLine = PointDataStructs.SeperateConduitLine.NO,
                     FixtureEnd = PointDataStructs.FixtureEnd.SOCKET,
-                    SystemMoniker = "AVK",
+                    SystemMoniker = "AR",
                 };
 
                 // Custom data additions

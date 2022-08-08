@@ -15,8 +15,7 @@ namespace EpicWallBox
         {
             FilteredElementCollector hostlevelsCollector = new FilteredElementCollector(doc);
             List<Element> hostLevels = hostlevelsCollector.OfClass(typeof(Level)).OfCategory(BuiltInCategory.OST_Levels).ToList();
-            FilteredElementCollector Collector = new FilteredElementCollector(doc).
-                OfCategory(BuiltInCategory.OST_ElectricalFixtures);
+            FilteredElementCollector Collector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_ElectricalFixtures);
             FamilySymbol PointMarker = (FamilySymbol)Collector.FirstOrDefault(x => x.Name == "TestPointMarker");
             PointMarker.Activate();
             FamilyInstance scBoxInstance = doc.Create.NewFamilyInstance(
@@ -36,9 +35,9 @@ namespace EpicWallBox
         }
         public static void CreateSocketBox(Document doc, PointData itemPointData)
         {
-            if (itemPointData.SnapSettings.UseBoxOffset)
+            if (itemPointData.pSettings.UseBoxOffset)
             {
-                double verticalOffset = itemPointData.SnapSettings.ScBoxOffsetY / mmInFt;
+                double verticalOffset = itemPointData.pSettings.ScBoxOffsetY / mmInFt;
                 //double horizontalOffset = itemPointData.SnapSettings.ScBoxOffsetX / mmInFt;
 
                 XYZ OffsetXYZ = new XYZ(0, 0, verticalOffset);
@@ -58,8 +57,18 @@ namespace EpicWallBox
 
             RotateFamilyInstance(itemPointData.CreatedScBoxInstane, itemPointData.LinkedFixtureLocation, itemPointData.Rotation);
 
-            itemPointData.CreatedScBoxInstane.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
-                Set(itemPointData.SystemMoniker + "_" + itemPointData.LinkedFixture.Symbol.FamilyName);
+            string CommentString;
+            if(itemPointData.SystemMoniker != null && itemPointData.SystemMoniker.Trim() != "")
+            {
+                CommentString = itemPointData.SystemMoniker + "_" + itemPointData.LinkedFixture.Symbol.FamilyName;
+            } else
+            {
+                CommentString = itemPointData.LinkedFixture.Symbol.FamilyName;
+            }
+
+            itemPointData.CreatedScBoxInstane.
+                get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
+                Set(CommentString);
         }
         public static void CreateConduit(Document doc, PointData itemPointData)
         {
@@ -118,7 +127,7 @@ namespace EpicWallBox
             //if (itemPointData.CreatedConnectionBoxInstane == null) { return; }
             //itemPointData.ConduitDirection = PointDataStructs.ConduitDirection.UP;
 
-            double ConduitTurnOffset = itemPointData.ConnectionOffset;
+            double ConduitTurnOffset = itemPointData.ConnectionSideOffset;
             double PointRotation = itemPointData.Rotation;
 
             #region Getting SocketBox Connectors
@@ -337,7 +346,6 @@ namespace EpicWallBox
             }
         }
 
-
         public static void CreateConnectionBox(Document doc, PointData itemPointData)
         {
             if( itemPointData.ConduitDirection == PointDataStructs.ConduitDirection.DOWN)
@@ -345,10 +353,10 @@ namespace EpicWallBox
                 if (itemPointData.ConnectionEnd == PointDataStructs.ConnectionEnd.BOX)
                 {
                     XYZ CornerBoxLocation = itemPointData.LinkedFixtureLocation;
-                    var ConnectionOffset = itemPointData.ConnectionOffset;
+                    var ConnectionOffset = itemPointData.ConnectionSideOffset;
 
-                    if (itemPointData.ConnectionOffset < MinOffsetDistance && 
-                        itemPointData.ConnectionOffset > -MinOffsetDistance)
+                    if (itemPointData.ConnectionSideOffset < MinOffsetDistance && 
+                        itemPointData.ConnectionSideOffset > -MinOffsetDistance)
                     {
                         ConnectionOffset = 0;
                     }
@@ -357,7 +365,7 @@ namespace EpicWallBox
                     CornerBoxLocation = new XYZ(
                     CornerBoxLocation.X + (ConnectionOffset / mmInFt) * Math.Cos(itemPointData.Rotation),
                     CornerBoxLocation.Y + (ConnectionOffset / mmInFt) * Math.Sin(itemPointData.Rotation),
-                    (itemPointData.TargetLevel as Level).Elevation
+                    (itemPointData.TargetLevel as Level).Elevation + (itemPointData.pSettings.BottomFloorOffset / mmInFt)
                     );
 
                     itemPointData.conBoxBotFamSymbol.Activate();

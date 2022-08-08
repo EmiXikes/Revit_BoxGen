@@ -39,12 +39,17 @@ namespace EpicWallBox
                 {
                     DistanceFwd = 1500,
                     DistanceRev = 100,
+                    LinkId = new ElementId(0),
                     ViewName = "EpicC",
                     UseBoxOffset = false,
                     ScBoxOffsetX = 0,
                     ScBoxOffsetY = 0,
-                    UseBoundingBox = false
+                    UseBoundingBox = false,
+                    ConduitSideOffset = 100,
+                    AdjacentBoxOffset = 71, 
+                    BottomFloorOffset =0,
                 };
+                MySettingStorage.Set(doc, MySettings);
             }
 
 
@@ -92,6 +97,9 @@ namespace EpicWallBox
                 ScBoxOffsetX = MySettings.ScBoxOffsetX,
                 ScBoxOffsetY = MySettings.ScBoxOffsetY,
                 UseBoundingBox = MySettings.UseBoundingBox,
+                ConduitSideOffset = MySettings.ConduitSideOffset,
+                AdjacentBoxOffset = MySettings.AdjacentBoxOffset,
+                BottomFloorOffset = MySettings.BottomFloorOffset,
             };
 
             int ind = 0;
@@ -117,6 +125,9 @@ namespace EpicWallBox
                 return Result.Cancelled;
             }
 
+            if (uiData.AdjacentBoxOffset < 71) uiData.AdjacentBoxOffset = 71;
+            if (uiData.ConduitSideOffset < 50) uiData.ConduitSideOffset = 50;
+
             MySettings.DistanceRev = uiData.DistanceRev;
             MySettings.DistanceFwd = uiData.DistanceFwd;
             MySettings.ViewName = uiData.CollisionViewName;
@@ -124,7 +135,9 @@ namespace EpicWallBox
             MySettings.UseBoxOffset = uiData.UseBoxOffset;
             MySettings.ScBoxOffsetX = uiData.ScBoxOffsetX;
             MySettings.ScBoxOffsetY = uiData.ScBoxOffsetY;
-
+            MySettings.ConduitSideOffset = uiData.ConduitSideOffset;
+            MySettings.AdjacentBoxOffset = uiData.AdjacentBoxOffset;
+            MySettings.BottomFloorOffset = uiData.BottomFloorOffset;
 
             if (uiData.CollisionLinks.Count > 0)
             {

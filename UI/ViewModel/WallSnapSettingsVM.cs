@@ -141,6 +141,42 @@ namespace EpicWallBox.UI.ViewModel
             }
         }
 
+        public double ConduitSideOffset
+        {
+            get => conduitSideOffset; set
+            {
+                if (conduitSideOffset != value)
+                {
+                    conduitSideOffset = value;
+                    MyPropertyChanged(nameof(ConduitSideOffset));
+                }
+            }
+        }
+        public double AdjacentBoxOffset
+        {
+            get => adjacentBoxOffset; set
+            {
+                if (adjacentBoxOffset != value)
+                {
+                    adjacentBoxOffset = value;
+                    MyPropertyChanged(nameof(AdjacentBoxOffset));
+                }
+
+            }
+        }
+
+        public double BottomFloorOffset
+        {
+            get => bottomFloorOffset; set
+            {
+                if (bottomFloorOffset != value)
+                {
+                    bottomFloorOffset = value;
+                    MyPropertyChanged(nameof(BottomFloorOffset));
+                }
+            }
+        }
+
 
         #endregion
 
@@ -151,6 +187,9 @@ namespace EpicWallBox.UI.ViewModel
         private double scBoxOffsetY;
         private bool useBoundingBox;
         private bool useBoxOffset;
+        private double conduitSideOffset;
+        private double adjacentBoxOffset;
+        private double bottomFloorOffset;
 
         public Result RevitTransactionResult { get; set; }
         public RevitLinkType SelectedLink
