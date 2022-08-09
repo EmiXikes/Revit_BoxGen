@@ -1128,8 +1128,6 @@ namespace EpicWallBox
     [Transaction(TransactionMode.Manual)]
     internal class ManualAddSocketBoxFromPicked : HelperOps, IExternalCommand
     {
-        private PickSelectionFilter filter;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             #region input settings
@@ -1240,49 +1238,47 @@ namespace EpicWallBox
                 }
             }
         }
-    }
-    class PickSelectionFilter : ISelectionFilter
-    {
-        private Document _doc;
-        private List<BuiltInCategory> _AllowedCats;
-
-        public PickSelectionFilter(Document doc, List<BuiltInCategory> AllowedCats)
+        class PickSelectionFilter : ISelectionFilter
         {
-            _doc = doc;
-            _AllowedCats = AllowedCats;
-        }
-        public Document LinkedDocument { get; private set; } = null;
-        public bool AllowElement(Element elem)
-        {
-            return true;
-        }
+            private Document _doc;
+            private List<BuiltInCategory> _AllowedCats;
 
-        public bool AllowReference(Reference reference, XYZ position)
-        {
-            Element e = _doc.GetElement(reference);
-
-            if (e is RevitLinkInstance)
+            public PickSelectionFilter(Document doc, List<BuiltInCategory> AllowedCats)
             {
-                RevitLinkInstance li = e as RevitLinkInstance;
-                LinkedDocument = li.GetLinkDocument();
-                e = LinkedDocument.GetElement(reference.LinkedElementId);
-            } 
-
-            if (e != null)
+                _doc = doc;
+                _AllowedCats = AllowedCats;
+            }
+            public Document LinkedDocument { get; private set; } = null;
+            public bool AllowElement(Element elem)
             {
-                BuiltInCategory cat = 0;
-                cat = _AllowedCats.FirstOrDefault(x => ((int)x) == e.Category.Id.IntegerValue);
-
-                if (cat != 0 && cat != (BuiltInCategory)(-1)) return true;
-
-                //return e.Category.Id.IntegerValue == ((int)BuiltInCategory.OST_ElectricalFixtures);
+                return true;
             }
 
-            return false;
-            
+            public bool AllowReference(Reference reference, XYZ position)
+            {
+                Element e = _doc.GetElement(reference);
 
+                if (e is RevitLinkInstance)
+                {
+                    RevitLinkInstance li = e as RevitLinkInstance;
+                    LinkedDocument = li.GetLinkDocument();
+                    e = LinkedDocument.GetElement(reference.LinkedElementId);
+                }
+
+                if (e != null)
+                {
+                    BuiltInCategory cat = 0;
+                    cat = _AllowedCats.FirstOrDefault(x => ((int)x) == e.Category.Id.IntegerValue);
+
+                    if (cat != 0 && cat != (BuiltInCategory)(-1)) return true;
+
+                    //return e.Category.Id.IntegerValue == ((int)BuiltInCategory.OST_ElectricalFixtures);
+                }
+                return false;
+            }
         }
     }
+
 
     #endregion
 
@@ -1313,7 +1309,6 @@ namespace EpicWallBox
             return transResult;
         }
     }
-
 
     [Transaction(TransactionMode.Manual)]
     internal class DeleteConnected : HelperOps, IExternalCommand
@@ -1365,6 +1360,8 @@ namespace EpicWallBox
 
                 // Validity check
                 #region Validity check
+                if (SelectedFI == null) continue;
+
                 var epicID = SelectedFI.Symbol.get_Parameter(new System.Guid("e66469d5-4b01-4d47-be17-c3ce2224aac7"));
 
                 if (epicID == null)
@@ -1450,4 +1447,371 @@ namespace EpicWallBox
         }
     }
 
+    [Transaction(TransactionMode.Manual)]
+    internal class SnapToSelected : HelperOps, IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            #region input settings
+
+            ManualWallBoxFamilyTypeNames FamTypeNames = new ManualWallBoxFamilyTypeNames()
+            {
+                conduitTypeName = ConduitTypeName,
+                scBoxFamTypeName = SocketBoxFamilyTypeName,
+                conBoxBotFamTypeName = ConnectionBoxBottomSingleTypeName,
+                conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
+            };
+
+            PointData pData = new PointData()
+            {
+                transferComments = true,
+                ConnectionSideOffset = 0,
+                ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
+                ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
+            };
+            #endregion
+
+            #region transaction stuff setup
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            //Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            Document doc = uidoc.Document;
+            Result transResult = Result.Succeeded;
+            pData.doc = doc;
+            #endregion
+
+            //GetSymbols(FamTypeNames, pData);
+
+            //GetSettings(pData);
+            List<ElementId> CreatedElements = new List<ElementId>();
+
+            Transaction trans = new Transaction(doc);
+            trans.Start("Snap to Selected");
+
+            while (1 == 1)
+            {
+                try
+                {
+                    var selection = uidoc.Selection.GetElementIds();
+
+                    if (selection.Count != 1)
+                    {
+                        trans.Commit();
+                        return Result.Cancelled;
+                    }
+
+                    Element SelectedElement = doc.GetElement(selection.First());
+                    FamilyInstance SelectedFI = (FamilyInstance)SelectedElement;
+
+                    if (!CreatedElements.Contains(SelectedFI.Id)) CreatedElements.Add(SelectedFI.Id);
+
+                    // Validity check
+                    #region Validity check
+
+                    var epicID = SelectedFI.Symbol.get_Parameter(new System.Guid("e66469d5-4b01-4d47-be17-c3ce2224aac7"));
+
+                    if (epicID == null)
+                    {
+                        trans.Commit();
+                        return Result.Cancelled;
+                    }
+                    else
+                    {
+                        if (epicID.AsString() != EpicID_SocketBox)
+                        {
+                            trans.Commit();
+                            return Result.Cancelled;
+                        };
+                    }
+                    #endregion
+
+                    WallBoxPickFilter WallBoxPickFilter = new WallBoxPickFilter(doc);
+
+                    var r = uidoc.Selection.PickObject(
+                        ObjectType.Element, WallBoxPickFilter,
+                        "Pick WallBox to snap to selection");
+                    Element PickedElement = doc.GetElement(r.ElementId);
+                    FamilyInstance PickedFI = (FamilyInstance)PickedElement;
+
+                    var SelectedFICons = SelectedFI.MEPModel.ConnectorManager.Connectors;
+                    var PickedFICons = PickedFI.MEPModel.ConnectorManager.Connectors;
+
+                    XYZ deltaVector = XYZ.Zero;
+                    Connector sConClosest = null;
+                    Connector pConClosest = null;
+                    double d = 1000000;
+
+                    foreach (Connector sCon in SelectedFICons)
+                    {
+                        foreach (Connector pCon in PickedFICons)
+                        {
+                            double dt = sCon.Origin.DistanceTo(pCon.Origin);
+                            if (dt < d)
+                            {
+                                d = dt;
+                                deltaVector = sCon.Origin - pCon.Origin;
+                                sConClosest = sCon;
+                                pConClosest = pCon;
+                            }
+                        }
+                    }
+
+                    //CreateDebugMarker(doc, sConClosest.Origin);
+                    //CreateDebugMarker(doc, pConClosest.Origin);
+
+                    XYZ newPickedLocation = (PickedFI.Location as LocationPoint).Point + deltaVector;
+                    (PickedFI.Location as LocationPoint).Point = newPickedLocation;
+
+                    sConClosest.ConnectTo(pConClosest);
+                    if (!CreatedElements.Contains(PickedFI.Id)) CreatedElements.Add(PickedFI.Id);
+
+                    uidoc.Selection.SetElementIds(new List<ElementId>() { PickedFI.Id });
+
+                    //trans.Commit();
+                    //return transResult;
+                }
+                catch (Autodesk.Revit.Exceptions.OperationCanceledException)
+                {
+                    //ESC pressed
+                    uidoc.Selection.SetElementIds(CreatedElements);
+                    trans.Commit();
+                    return Result.Succeeded;
+                }
+                catch (Exception Ex)
+                {
+                    System.Windows.MessageBox.Show(Ex.Message);
+                    return Result.Failed;
+                }
+            }
+
+
+        }
+
+        class WallBoxPickFilter : ISelectionFilter
+        {
+            private Document _doc;
+
+            public WallBoxPickFilter(Document doc)
+            {
+                _doc = doc;
+            }   
+
+            public bool AllowElement(Element elem)
+            {
+                return true;
+            }
+
+            public bool AllowReference(Reference reference, XYZ position)
+            {
+                Element e = _doc.GetElement(reference);
+
+                if (e != null)
+                {
+                    if (e.Category.Id.IntegerValue == (int)BuiltInCategory.OST_MechanicalEquipment) return true;
+                }
+                return false;
+            }
+        }
+
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    internal class ConduitToSelected : HelperOps, IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            #region input settings
+
+            ManualWallBoxFamilyTypeNames FamTypeNames = new ManualWallBoxFamilyTypeNames()
+            {
+                conduitTypeName = ConduitTypeName,
+                scBoxFamTypeName = SocketBoxFamilyTypeName,
+                conBoxBotFamTypeName = ConnectionBoxBottomSingleTypeName,
+                conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
+            };
+
+            PointData pData = new PointData()
+            {
+                transferComments = true,
+                ConnectionSideOffset = 0,
+                ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
+                ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
+            };
+            #endregion
+
+            #region transaction stuff setup
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            //Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            Document doc = uidoc.Document;
+            Result transResult = Result.Succeeded;
+            pData.doc = doc;
+            #endregion
+
+            
+
+            //GetSettings(pData);
+            List<ElementId> CreatedElements = new List<ElementId>();
+
+            Transaction trans = new Transaction(doc);
+            trans.Start("Snap to Selected");
+
+            GetOrLoadSymbols(FamTypeNames, pData);
+
+            while (1 == 1)
+            {
+                try
+                {
+                    var selection = uidoc.Selection.GetElementIds();
+
+                    if (selection.Count != 1)
+                    {
+                        trans.Commit();
+                        return Result.Cancelled;
+                    }
+
+                    Element SelectedElement = doc.GetElement(selection.First());
+                    FamilyInstance SelectedFI = (FamilyInstance)SelectedElement;
+
+                    // Validity check
+                    #region Validity check
+
+                    var epicID = SelectedFI.Symbol.get_Parameter(new System.Guid("e66469d5-4b01-4d47-be17-c3ce2224aac7"));
+
+                    if (epicID == null)
+                    {
+                        trans.Commit();
+                        return Result.Cancelled;
+                    }
+                    else
+                    {
+                        if (epicID.AsString() != EpicID_SocketBox)
+                        {
+                            trans.Commit();
+                            return Result.Cancelled;
+                        };
+                    }
+                    #endregion
+
+                    pData.TargetLevel = GetElementLevel(doc, SelectedElement); ;
+                    if (!CreatedElements.Contains(SelectedFI.Id)) CreatedElements.Add(SelectedFI.Id);
+
+                    WallBoxPickFilter WallBoxPickFilter = new WallBoxPickFilter(doc);
+
+                    var r = uidoc.Selection.PickObject(
+                        ObjectType.Element, WallBoxPickFilter,
+                        "Pick a WallBox to create a conduit to..");
+                    Element PickedElement = doc.GetElement(r.ElementId);
+                    FamilyInstance PickedFI = (FamilyInstance)PickedElement;
+
+                    var SelectedFICons = SelectedFI.MEPModel.ConnectorManager.Connectors;
+                    var PickedFICons = PickedFI.MEPModel.ConnectorManager.Connectors;
+
+                    XYZ deltaVector = XYZ.Zero;
+                    Connector sConClosest = null;
+                    Connector pConClosest = null;
+                    double d = 1000000;
+
+                    foreach (Connector sCon in SelectedFICons)
+                    {
+                        foreach (Connector pCon in PickedFICons)
+                        {
+                            double dt = sCon.Origin.DistanceTo(pCon.Origin);
+                            if (dt < d)
+                            {
+                                d = dt;
+                                deltaVector = sCon.Origin - pCon.Origin;
+                                sConClosest = sCon;
+                                pConClosest = pCon;
+                            }
+                        }
+                    }
+
+                    //CreateDebugMarker(doc, sConClosest.Origin);
+                    //CreateDebugMarker(doc, pConClosest.Origin);
+
+
+                    // Create conduit if there is no vertical offset.
+                    if (new XYZ(sConClosest.Origin.X, sConClosest.Origin.Y, 0)
+                        .IsAlmostEqualTo(new XYZ(pConClosest.Origin.X, pConClosest.Origin.Y, 0)))
+                    {
+                        Conduit conduitInstance = Conduit.Create(
+                            doc,
+                            pData.conduitType.Id,
+                            sConClosest.Origin,
+                            pConClosest.Origin,
+                            pData.TargetLevel.Id
+                            );
+                        var diameter = conduitInstance.get_Parameter(BuiltInParameter.RBS_CONDUIT_DIAMETER_PARAM);
+                        diameter.Set(20 / mmInFt);
+                        conduitInstance.ConnectorManager.Lookup(0).ConnectTo(sConClosest);
+                        conduitInstance.ConnectorManager.Lookup(1).ConnectTo(pConClosest);
+
+                        var sComments = SelectedFI.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+                        if (sComments != null)
+                        {
+                            conduitInstance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).
+                                Set(sComments.AsString());
+                        }
+                    }
+
+
+
+
+
+                    //XYZ newPickedLocation = (PickedFI.Location as LocationPoint).Point + deltaVector;
+                    //(PickedFI.Location as LocationPoint).Point = newPickedLocation;
+
+                    //sConClosest.ConnectTo(pConClosest);
+                    //if (!CreatedElements.Contains(PickedFI.Id)) CreatedElements.Add(PickedFI.Id);
+
+                    uidoc.Selection.SetElementIds(new List<ElementId>() { PickedFI.Id });
+
+                    //trans.Commit();
+                    //return transResult;
+                }
+                catch (Autodesk.Revit.Exceptions.OperationCanceledException)
+                {
+                    //ESC pressed
+                    //uidoc.Selection.SetElementIds(CreatedElements);
+                    trans.Commit();
+                    return Result.Succeeded;
+                }
+                catch (Exception Ex)
+                {
+                    System.Windows.MessageBox.Show(Ex.Message);
+                    return Result.Failed;
+                }
+            }
+
+
+        }
+
+        class WallBoxPickFilter : ISelectionFilter
+        {
+            private Document _doc;
+
+            public WallBoxPickFilter(Document doc)
+            {
+                _doc = doc;
+            }
+
+            public bool AllowElement(Element elem)
+            {
+                return true;
+            }
+
+            public bool AllowReference(Reference reference, XYZ position)
+            {
+                Element e = _doc.GetElement(reference);
+
+                if (e != null)
+                {
+                    if (e.Category.Id.IntegerValue == (int)BuiltInCategory.OST_MechanicalEquipment) return true;
+                }
+                return false;
+            }
+        }
+
+    }
 }
