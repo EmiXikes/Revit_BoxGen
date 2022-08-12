@@ -1732,6 +1732,7 @@ namespace EpicWallBox
 
 
                     // Create conduit if there is no vertical offset.
+                    // TODO needs to change
                     if (new XYZ(sConClosest.Origin.X, sConClosest.Origin.Y, 0)
                         .IsAlmostEqualTo(new XYZ(pConClosest.Origin.X, pConClosest.Origin.Y, 0)))
                     {
@@ -1812,6 +1813,92 @@ namespace EpicWallBox
                 return false;
             }
         }
+
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    internal class ConduitTest03 : HelperOps, IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            #region input settings
+            ManualWallBoxFamilyTypeNames FamTypeNames = new ManualWallBoxFamilyTypeNames()
+            {
+                conduitTypeName = ConduitTypeName,
+                scBoxFamTypeName = SocketBoxFamilyTypeName,
+                conBoxBotFamTypeName = ConnectionBoxBottomSingleTypeName,
+                conBoxTopFamTypeName = ConnectionBoxTopSingleTypeName
+            };
+
+            int ConduitSideDirection = 0;
+
+            PointData pData = new PointData()
+            {
+                transferComments = true,
+                ConduitDirection = PointDataStructs.ConduitDirection.DOWN,
+                ConnectionEnd = PointDataStructs.ConnectionEnd.BOX
+            };
+            #endregion
+
+            #region transaction stuff setup
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            //Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            Document doc = uidoc.Document;
+            Result transResult = Result.Succeeded;
+            pData.doc = doc;
+            #endregion
+
+            GetSettings(pData);
+
+            pData.ConnectionSideOffset = pData.pSettings.ConduitSideOffset * ConduitSideDirection;
+
+            Transaction trans = new Transaction(doc);
+            trans.Start("Epic Conduit Manual down");
+
+            var selection = uidoc.Selection.GetElementIds();
+
+            foreach (ElementId selectedElementId in selection)
+            {
+
+                Element SelectedElement = doc.GetElement(selectedElementId);
+                FamilyInstance selectedFamInstance = (FamilyInstance)SelectedElement;
+
+                // Validity check
+                #region Validity check
+                var epicID = selectedFamInstance.Symbol.get_Parameter(new System.Guid("e66469d5-4b01-4d47-be17-c3ce2224aac7"));
+
+                if (epicID == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    //var s1 = epicID.AsString();
+                    //var s2 = EpicID_SocketBox;
+                    if (epicID.AsString() != EpicID_SocketBox) continue;
+                }
+                #endregion
+
+                GetOrLoadSymbols(FamTypeNames, pData);
+
+                Element TargetLevel = GetElementLevel(doc, SelectedElement);
+
+                pData.CreatedScBoxInstane = selectedFamInstance;
+                pData.LinkedFixtureLocation = (selectedFamInstance.Location as LocationPoint).Point;
+                pData.TargetLevel = TargetLevel;
+                pData.Rotation = (selectedFamInstance.Location as LocationPoint).Rotation;
+
+                //CreateConnectionBox(doc, pData);
+
+                CreateConduit3(doc, pData);
+            }
+
+            trans.Commit();
+            return transResult;
+        }
+
+
 
     }
 }

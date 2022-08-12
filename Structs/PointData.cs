@@ -30,6 +30,7 @@ namespace EpicWallBox
 
         public SettingsObj pSettings;
         public double ConnectionSideOffset;
+        Plane ConduitTravelPlane;
         //public double AdjacentBoxOffset = 71;
         //public double ConduitSideOffset = 100;
         
